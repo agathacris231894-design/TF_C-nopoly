@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,9 +17,18 @@ void lerTexto(const char *mensagem, char *texto, int tamanho) {
         return;
     }
 
-    texto[strcspn(texto, "\n")] = '\0';
-}
+    size_t comprimento = strlen(texto);
 
+    if (comprimento > 0 && texto[comprimento - 1] == '\n') {
+        texto[comprimento - 1] = '\0';
+    } else {
+        int caractere;
+
+        while ((caractere = getchar()) != '\n' && caractere != EOF) {
+            // Limpa o restante da entrada
+        }
+    }
+}
 
 // ==========================================
 // FUNCAO DE CADASTRO
@@ -32,33 +40,42 @@ void cadastrarUsuario(sqlite3 *db) {
     char cpf[12];
     char senha[100];
 
-    printf("\n========== CADASTRO C-NOPOLY ==========\n");
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
-    lerTexto("Nome completo: ", nome, sizeof(nome));
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n====================================================== CADASTRO ======================================================\n");
+
+    printf("\t\t\t\t\t\t");
+    lerTexto("Digite seu nome completo: ", nome, sizeof(nome));
 
     if (strlen(nome) == 0) {
-        printf("Nome nao pode ficar vazio.\n");
+        printf("\t\t\t\t\t\t\nO campo nome nao pode ficar vazio.\n");
         return;
     }
 
-    lerTexto("CPF (somente numeros): ", cpf, sizeof(cpf));
+    printf("\t\t\t\t\t\t");
+    lerTexto("\nDigite seu CPF (somente numeros): ", cpf, sizeof(cpf));
 
     if (strlen(cpf) != 11) {
-        printf("CPF deve conter 11 digitos.\n");
+        printf("\t\t\t\t\t\t\nCPF deve conter 11 digitos.\n");
         return;
     }
 
     for (int i = 0; i < 11; i++) {
         if (!isdigit((unsigned char)cpf[i])) {
-            printf("CPF deve conter somente numeros.\n");
+            printf("\t\t\t\t\t\t\nCPF deve conter somente numeros.\n");
             return;
         }
     }
 
-    lerTexto("Crie uma senha: ", senha, sizeof(senha));
+    printf("\t\t\t\t\t\t");
+    lerTexto("\nCrie uma senha: ", senha, sizeof(senha));
 
     if (strlen(senha) == 0) {
-        printf("A senha nao pode ficar vazia.\n");
+        printf("\t\t\t\t\t\t\nA senha nao pode ficar vazia.\n");
         return;
     }
 
@@ -86,16 +103,16 @@ void cadastrarUsuario(sqlite3 *db) {
 
     if (resultado == SQLITE_DONE) {
 
-        printf("\nCadastro realizado com sucesso!\n");
-        printf("Saldo inicial: R$ 0,00\n");
+        printf("\n\t\t\t\t\t\tCadastro realizado com sucesso!\n");
+        printf("\t\t\t\t\t\tSaldo inicial: R$ 0,00\n");
 
     } else if (resultado == SQLITE_CONSTRAINT) {
 
-        printf("\nEste CPF ja esta cadastrado!\n");
+        printf("\n\t\t\t\t\t\tEste CPF ja esta cadastrado!\n");
 
     } else {
 
-        printf("\nErro ao salvar cadastro: %s\n",
+        printf("\n\t\t\t\t\t\tErro ao salvar cadastro: %s\n",
                sqlite3_errmsg(db));
     }
 
@@ -112,10 +129,18 @@ int fazerLogin(sqlite3 *db) {
     char cpf[12];
     char senha[100];
 
-    printf("\n========== LOGIN C-NOPOLY ==========\n");
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
-    lerTexto("CPF: ", cpf, sizeof(cpf));
-    lerTexto("Senha: ", senha, sizeof(senha));
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n======================================================== LOGIN ========================================================\n");
+
+    printf("\t\t\t\t\t\t");
+    lerTexto("\nCPF: ", cpf, sizeof(cpf));
+    printf("\t\t\t\t\t\t");
+    lerTexto("\nSenha: ", senha, sizeof(senha));
 
     const char *sql =
         "SELECT nome_completo, saldo "
@@ -146,15 +171,15 @@ int fazerLogin(sqlite3 *db) {
 
         double saldo = sqlite3_column_double(stmt, 1);
 
-        printf("\nLogin realizado com sucesso!\n");
-        printf("Bem-vindo(a), %s!\n", nome);
-        printf("Saldo atual: R$ %.2f\n", saldo);
+        printf("\n\t\t\t\t\t\tLogin realizado com sucesso!\n\n");
+        printf("\t\t\t\t\t\tBem-vindo(a), %s!\n\n", nome);
+        printf("\t\t\t\t\t\tSeu saldo atual e de: R$ %.2f\n\n", saldo);
 
         autenticado = 1;
 
     } else if (resultado == SQLITE_DONE) {
 
-        printf("\nCPF ou senha incorretos.\n");
+        printf("\n\t\t\t\t\t\tCPF ou senha incorretos.\n");
 
     } else {
 
@@ -179,21 +204,26 @@ void menuPrincipal(void) {
 
     do {
 
-        printf("\n====================================================\n");
-        printf("                    C-NOPOLY\n");
-        printf("====================================================\n");
+        printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+        
+        printf("\n====================================================== C-NOPOLY ======================================================\n");
+        
+        printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+        
+        printf("\n=================================================== MENU PRINCIPAL ===================================================\n");
+        
+        printf("\t\t\t\t\t\t\n1 - Realizar Pagamento\n\n");
+        printf("\t\t\t\t\t\t2 - Consultar Extrato\n\n");
+        printf("\t\t\t\t\t\t3 - Transferir Valores\n\n");
+        printf("\t\t\t\t\t\t4 - Consultar Dados\n\n");
+        printf("\t\t\t\t\t\t0 - Sair\n\n");
 
-        printf("\n1 - Realizar Pagamento\n");
-        printf("2 - Consultar Extrato\n");
-        printf("3 - Transferir Valores\n");
-        printf("4 - Consultar Dados\n");
-        printf("0 - Sair\n");
-
-        lerTexto("\nEscolha uma opcao: ",
+        printf("\t\t\t\t\t\t");
+        lerTexto("Escolha uma opcao: ",
                  entrada, sizeof(entrada));
 
         if (sscanf(entrada, "%d", &opcao) != 1) {
-            printf("Entrada invalida.\n");
+            printf("\t\t\t\t\t\tEntrada invalida.\n");
             opcao = -1;
             continue;
         }
@@ -217,11 +247,11 @@ void menuPrincipal(void) {
                 break;
 
             case 0:
-                printf("Encerrando sessao...\n");
+                printf("\t\t\t\t\t\t\nEncerrando sessao...\n");
                 break;
 
             default:
-                printf("Opcao invalida!\n");
+                printf("\t\t\t\t\t\tOpcao invalida!\n");
         }
 
     } while (opcao != 0);
@@ -283,16 +313,21 @@ int main(void) {
 
     do {
 
-        printf("\n====================================\n");
-        printf("             C-NOPOLY\n");
-        printf("====================================\n");
+        printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+        
+        printf("\n====================================================== C-NOPOLY ======================================================\n");
+        
+        printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n");
 
-        printf("\n1 - Cadastrar usuario\n");
-        printf("2 - Fazer login\n");
-        printf("0 - Sair do programa\n");
+        printf("\t\t\t\t\t\t1 - Cadastrar usuario\n\n");
+        printf("\t\t\t\t\t\t2 - Fazer login\n\n");
+        printf("\t\t\t\t\t\t0 - Sair do programa\n\n");
 
-        lerTexto("\nEscolha uma opcao: ",
+        printf("\t\t\t\t\t\t");
+        lerTexto("Escolha uma opcao: ",
                  entrada, sizeof(entrada));
+
+        printf("\n");
 
         if (sscanf(entrada, "%d", &opcao) != 1) {
             printf("Entrada invalida.\n");
@@ -315,11 +350,12 @@ int main(void) {
                 break;
 
             case 0:
-                printf("Encerrando o C-NOPOLY...\n");
+                printf("\t\t\t\t\t\tEncerrando o C-NOPOLY...\n\n");
+                printf("\t\t\t\t\t\tAgradecemos por utilizar nossos servicos!\n\n");
                 break;
 
             default:
-                printf("Opcao invalida!\n");
+                printf("\t\t\t\t\t\tOpcao invalida!\n");
         }
 
     } while (opcao != 0);
