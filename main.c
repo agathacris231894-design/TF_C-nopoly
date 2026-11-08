@@ -252,6 +252,72 @@ double consultarSaldo(sqlite3 *db, int idUsuario)
 }
 
 // ==========================================
+// FUNCAO REALIZAR PAGAMENTO
+// ==========================================
+
+void realizarPagamento()
+{
+    char descricao[100];
+
+    printf("\n===== REALIZAR PAGAMENTO =====\n");
+
+    lerTexto("Qual conta deseja pagar? ", descricao, sizeof(descricao));
+
+    if (strlen(descricao) == 0)
+    {
+        printf("A descricao nao pode ficar vazia.\n");
+        return;
+    }
+
+    printf("\nConta selecionada: %s\n", descricao);
+
+    printf("\nPressione ENTER para continuar...");
+    getchar();
+}
+
+// ==========================================
+// FUNCAO PARA ESCOLHER FORMA DE PAGAMENTO E CALCULAR
+// ==========================================
+
+double escolherFormaPagamento(double valor)
+{
+    int opcao;
+    double valorFinal;
+
+    printf("\n===== FORMA DE PAGAMENTO =====\n");
+    printf("1 - Cartao de credito (+10%%)\n");
+    printf("2 - Cartao de debito (+5%%)\n");
+    printf("3 - A vista (sem acrescimo)\n");
+
+    printf("\nEscolha uma opcao: ");
+    scanf("%d", &opcao);
+
+    switch (opcao)
+    {
+    case 1:
+        valorFinal = valor * 1.10;
+        break;
+
+    case 2:
+        valorFinal = valor * 1.05;
+        break;
+
+    case 3:
+        valorFinal = valor;
+        break;
+
+    default:
+        printf("\nOpcao invalida!\n");
+        return -1;
+    }
+
+    printf("\nValor original: R$ %.2f\n", valor);
+    printf("Valor final: R$ %.2f\n", valorFinal);
+
+    return valorFinal;
+}
+
+// ==========================================
 // MENU PRINCIPAL
 // ==========================================
 
@@ -293,8 +359,28 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
         {
 
         case 1:
-            printf("Funcionalidade de pagamento em desenvolvimento.\n");
+        {
+            double valor;
+            double valorFinal;
+
+            realizarPagamento();
+
+            printf("\nDigite o valor da conta: R$ ");
+            scanf("%lf", &valor);
+
+            valorFinal = escolherFormaPagamento(valor);
+
+            if (valorFinal >= 0)
+            {
+                printf("\nPagamento selecionado com sucesso!\n");
+            }
+
+            printf("\nPressione ENTER para voltar ao menu...");
+            getchar();
+            getchar();
+
             break;
+        }
 
         case 2:
             printf("Funcionalidade de extrato em desenvolvimento.\n");
