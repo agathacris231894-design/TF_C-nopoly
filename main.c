@@ -8,23 +8,29 @@
 // FUNCAO PARA LER TEXTOS
 // ==========================================
 
-void lerTexto(const char *mensagem, char *texto, int tamanho) {
+void lerTexto(const char *mensagem, char *texto, int tamanho)
+{
 
     printf("%s", mensagem);
 
-    if (fgets(texto, tamanho, stdin) == NULL) {
+    if (fgets(texto, tamanho, stdin) == NULL)
+    {
         texto[0] = '\0';
         return;
     }
 
     size_t comprimento = strlen(texto);
 
-    if (comprimento > 0 && texto[comprimento - 1] == '\n') {
+    if (comprimento > 0 && texto[comprimento - 1] == '\n')
+    {
         texto[comprimento - 1] = '\0';
-    } else {
+    }
+    else
+    {
         int caractere;
 
-        while ((caractere = getchar()) != '\n' && caractere != EOF) {
+        while ((caractere = getchar()) != '\n' && caractere != EOF)
+        {
             // Limpa o restante da entrada
         }
     }
@@ -34,7 +40,8 @@ void lerTexto(const char *mensagem, char *texto, int tamanho) {
 // FUNCAO DE CADASTRO
 // ==========================================
 
-void cadastrarUsuario(sqlite3 *db) {
+void cadastrarUsuario(sqlite3 *db)
+{
 
     char nome[100];
     char cpf[12];
@@ -51,7 +58,8 @@ void cadastrarUsuario(sqlite3 *db) {
     printf("\t\t\t\t\t\t");
     lerTexto("Digite seu nome completo: ", nome, sizeof(nome));
 
-    if (strlen(nome) == 0) {
+    if (strlen(nome) == 0)
+    {
         printf("\t\t\t\t\t\t\nO campo nome nao pode ficar vazio.\n");
         return;
     }
@@ -59,13 +67,16 @@ void cadastrarUsuario(sqlite3 *db) {
     printf("\t\t\t\t\t\t");
     lerTexto("\nDigite seu CPF (somente numeros): ", cpf, sizeof(cpf));
 
-    if (strlen(cpf) != 11) {
+    if (strlen(cpf) != 11)
+    {
         printf("\t\t\t\t\t\t\nCPF deve conter 11 digitos.\n");
         return;
     }
 
-    for (int i = 0; i < 11; i++) {
-        if (!isdigit((unsigned char)cpf[i])) {
+    for (int i = 0; i < 11; i++)
+    {
+        if (!isdigit((unsigned char)cpf[i]))
+        {
             printf("\t\t\t\t\t\t\nCPF deve conter somente numeros.\n");
             return;
         }
@@ -74,7 +85,8 @@ void cadastrarUsuario(sqlite3 *db) {
     printf("\t\t\t\t\t\t");
     lerTexto("\nCrie uma senha: ", senha, sizeof(senha));
 
-    if (strlen(senha) == 0) {
+    if (strlen(senha) == 0)
+    {
         printf("\t\t\t\t\t\t\nA senha nao pode ficar vazia.\n");
         return;
     }
@@ -86,8 +98,8 @@ void cadastrarUsuario(sqlite3 *db) {
 
     sqlite3_stmt *stmt = NULL;
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL)
-        != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+    {
 
         printf("Erro ao preparar cadastro: %s\n",
                sqlite3_errmsg(db));
@@ -101,16 +113,19 @@ void cadastrarUsuario(sqlite3 *db) {
 
     int resultado = sqlite3_step(stmt);
 
-    if (resultado == SQLITE_DONE) {
+    if (resultado == SQLITE_DONE)
+    {
 
         printf("\n\t\t\t\t\t\tCadastro realizado com sucesso!\n");
         printf("\t\t\t\t\t\tSaldo inicial: R$ 0,00\n");
-
-    } else if (resultado == SQLITE_CONSTRAINT) {
+    }
+    else if (resultado == SQLITE_CONSTRAINT)
+    {
 
         printf("\n\t\t\t\t\t\tEste CPF ja esta cadastrado!\n");
-
-    } else {
+    }
+    else
+    {
 
         printf("\n\t\t\t\t\t\tErro ao salvar cadastro: %s\n",
                sqlite3_errmsg(db));
@@ -119,12 +134,12 @@ void cadastrarUsuario(sqlite3 *db) {
     sqlite3_finalize(stmt);
 }
 
-
 // ==========================================
 // FUNCAO DE LOGIN
 // ==========================================
 
-int fazerLogin(sqlite3 *db) {
+int fazerLogin(sqlite3 *db, int *idUsuario)
+{
 
     char cpf[12];
     char senha[100];
@@ -143,14 +158,14 @@ int fazerLogin(sqlite3 *db) {
     lerTexto("\nSenha: ", senha, sizeof(senha));
 
     const char *sql =
-        "SELECT nome_completo, saldo "
+        "SELECT id, nome_completo, saldo "
         "FROM usuarios "
         "WHERE cpf = ? AND senha = ?;";
 
     sqlite3_stmt *stmt = NULL;
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL)
-        != SQLITE_OK) {
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+    {
 
         printf("Erro ao consultar banco: %s\n",
                sqlite3_errmsg(db));
@@ -164,24 +179,25 @@ int fazerLogin(sqlite3 *db) {
     int resultado = sqlite3_step(stmt);
     int autenticado = 0;
 
-    if (resultado == SQLITE_ROW) {
+    if (resultado == SQLITE_ROW)
+    {
+        *idUsuario = sqlite3_column_int(stmt, 0);
 
         const unsigned char *nome =
-            sqlite3_column_text(stmt, 0);
+            sqlite3_column_text(stmt, 1);
 
-        double saldo = sqlite3_column_double(stmt, 1);
-
-        printf("\n\t\t\t\t\t\tLogin realizado com sucesso!\n\n");
-        printf("\t\t\t\t\t\tBem-vindo(a), %s!\n\n", nome);
-        printf("\t\t\t\t\t\tSeu saldo atual e de: R$ %.2f\n\n", saldo);
+        printf("\nLogin realizado com sucesso!\n\n");
+        printf("Bem-vindo(a), %s!\n\n", nome);
 
         autenticado = 1;
-
-    } else if (resultado == SQLITE_DONE) {
+    }
+    else if (resultado == SQLITE_DONE)
+    {
 
         printf("\n\t\t\t\t\t\tCPF ou senha incorretos.\n");
-
-    } else {
+    }
+    else
+    {
 
         printf("\nErro durante a verificacao: %s\n",
                sqlite3_errmsg(db));
@@ -192,26 +208,70 @@ int fazerLogin(sqlite3 *db) {
     return autenticado;
 }
 
+// ==========================================
+// FUNCAO PARA CONSULTAR SALDO
+// ==========================================
+
+double consultarSaldo(sqlite3 *db, int idUsuario)
+{
+    const char *sql =
+        "SELECT saldo FROM usuarios WHERE id = ?;";
+
+    sqlite3_stmt *stmt = NULL;
+
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+    {
+        printf("Erro ao preparar consulta de saldo: %s\n",
+               sqlite3_errmsg(db));
+
+        return -1.0;
+    }
+
+    sqlite3_bind_int(stmt, 1, idUsuario);
+
+    int resultado = sqlite3_step(stmt);
+    double saldo = -1.0;
+
+    if (resultado == SQLITE_ROW)
+    {
+        saldo = sqlite3_column_double(stmt, 0);
+    }
+    else if (resultado == SQLITE_DONE)
+    {
+        printf("Usuario nao encontrado.\n");
+    }
+    else
+    {
+        printf("Erro ao consultar saldo: %s\n",
+               sqlite3_errmsg(db));
+    }
+
+    sqlite3_finalize(stmt);
+
+    return saldo;
+}
 
 // ==========================================
 // MENU PRINCIPAL
 // ==========================================
 
-void menuPrincipal(void) {
+void menuPrincipal(sqlite3 *db, int idUsuario)
+{
 
     int opcao;
     char entrada[20];
 
-    do {
+    do
+    {
 
         printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
-        
+
         printf("\n====================================================== C-NOPOLY ======================================================\n");
-        
+
         printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
-        
+
         printf("\n=================================================== MENU PRINCIPAL ===================================================\n");
-        
+
         printf("\t\t\t\t\t\t\n1 - Realizar Pagamento\n\n");
         printf("\t\t\t\t\t\t2 - Consultar Extrato\n\n");
         printf("\t\t\t\t\t\t3 - Transferir Valores\n\n");
@@ -222,47 +282,64 @@ void menuPrincipal(void) {
         lerTexto("Escolha uma opcao: ",
                  entrada, sizeof(entrada));
 
-        if (sscanf(entrada, "%d", &opcao) != 1) {
+        if (sscanf(entrada, "%d", &opcao) != 1)
+        {
             printf("\t\t\t\t\t\tEntrada invalida.\n");
             opcao = -1;
             continue;
         }
 
-        switch (opcao) {
+        switch (opcao)
+        {
 
-            case 1:
-                printf("Funcionalidade de pagamento em desenvolvimento.\n");
-                break;
+        case 1:
+            printf("Funcionalidade de pagamento em desenvolvimento.\n");
+            break;
 
-            case 2:
-                printf("Funcionalidade de extrato em desenvolvimento.\n");
-                break;
+        case 2:
+            printf("Funcionalidade de extrato em desenvolvimento.\n");
+            break;
 
-            case 3:
-                printf("Funcionalidade de transferencia em desenvolvimento.\n");
-                break;
+        case 3:
+            printf("Funcionalidade de transferencia em desenvolvimento.\n");
+            break;
 
-            case 4:
-                printf("Funcionalidade de consulta em desenvolvimento.\n");
-                break;
+        case 4:
+        {
+            double saldoAtual = consultarSaldo(db, idUsuario);
 
-            case 0:
-                printf("\t\t\t\t\t\t\nEncerrando sessao...\n");
-                break;
+            if (saldoAtual >= 0)
+            {
+                printf("\n========================================\n");
+                printf("           CONSULTA DE SALDO             \n");
+                printf("========================================\n");
 
-            default:
-                printf("\t\t\t\t\t\tOpcao invalida!\n");
+                printf("\nSeu saldo atual: R$ %.2f\n", saldoAtual);
+            }
+
+            printf("\nPressione ENTER para voltar ao menu...");
+            getchar();
+
+            break;
+        }
+
+        case 0:
+            printf("\t\t\t\t\t\t\nEncerrando sessao...\n");
+            break;
+
+        default:
+            printf("\t\t\t\t\t\tOpcao invalida!\n");
         }
 
     } while (opcao != 0);
 }
 
-
 // ==========================================
 // FUNCAO PRINCIPAL
 // ==========================================
 
-int main(void) {
+int main(void)
+{
 
     sqlite3 *db = NULL;
     char *erro = NULL;
@@ -270,7 +347,8 @@ int main(void) {
     // Abre o banco de dados
     int resultado = sqlite3_open("cnopoly_v2.db", &db);
 
-    if (resultado != SQLITE_OK) {
+    if (resultado != SQLITE_OK)
+    {
 
         printf("Erro ao abrir banco de dados: %s\n",
                sqlite3_errmsg(db));
@@ -292,10 +370,10 @@ int main(void) {
         ");";
 
     resultado = sqlite3_exec(
-        db, sqlTabela, NULL, NULL, &erro
-    );
+        db, sqlTabela, NULL, NULL, &erro);
 
-    if (resultado != SQLITE_OK) {
+    if (resultado != SQLITE_OK)
+    {
 
         printf("Erro ao criar tabela: %s\n", erro);
 
@@ -307,16 +385,41 @@ int main(void) {
 
     printf("Tabela usuarios pronta!\n");
 
+    const char *sqlTransacoes =
+        "CREATE TABLE IF NOT EXISTS transacoes ("
+        "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "usuario_id INTEGER NOT NULL,"
+        "descricao TEXT NOT NULL,"
+        "valor REAL NOT NULL,"
+        "data_hora TEXT NOT NULL,"
+        "FOREIGN KEY (usuario_id) REFERENCES usuarios(id)"
+        ");";
+
+    resultado = sqlite3_exec(
+        db, sqlTransacoes, NULL, NULL, &erro);
+
+    if (resultado != SQLITE_OK)
+    {
+
+        printf("Erro ao criar tabela de transacoes: %s\n", erro);
+
+        sqlite3_free(erro);
+        sqlite3_close(db);
+
+        return 1;
+    }
+
     // Menu inicial
     int opcao;
     char entrada[20];
 
-    do {
+    do
+    {
 
         printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
-        
+
         printf("\n====================================================== C-NOPOLY ======================================================\n");
-        
+
         printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n");
 
         printf("\t\t\t\t\t\t1 - Cadastrar usuario\n\n");
@@ -329,33 +432,38 @@ int main(void) {
 
         printf("\n");
 
-        if (sscanf(entrada, "%d", &opcao) != 1) {
+        if (sscanf(entrada, "%d", &opcao) != 1)
+        {
             printf("Entrada invalida.\n");
             opcao = -1;
             continue;
         }
 
-        switch (opcao) {
+        switch (opcao)
+        {
 
-            case 1:
-                cadastrarUsuario(db);
-                break;
+        case 1:
+            cadastrarUsuario(db);
+            break;
 
-            case 2:
+        case 2:
 
-                if (fazerLogin(db)) {
-                    menuPrincipal();
-                }
+            int idUsuario;
 
-                break;
+            if (fazerLogin(db, &idUsuario))
+            {
+                menuPrincipal(db, idUsuario);
+            }
 
-            case 0:
-                printf("\t\t\t\t\t\tEncerrando o C-NOPOLY...\n\n");
-                printf("\t\t\t\t\t\tAgradecemos por utilizar nossos servicos!\n\n");
-                break;
+            break;
 
-            default:
-                printf("\t\t\t\t\t\tOpcao invalida!\n");
+        case 0:
+            printf("\t\t\t\t\t\tEncerrando o C-NOPOLY...\n\n");
+            printf("\t\t\t\t\t\tAgradecemos por utilizar nossos servicos!\n\n");
+            break;
+
+        default:
+            printf("\t\t\t\t\t\tOpcao invalida!\n");
         }
 
     } while (opcao != 0);
