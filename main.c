@@ -283,14 +283,20 @@ double escolherFormaPagamento(double valor)
 {
     int opcao;
     double valorFinal;
+    char entrada[20];
 
     printf("\n===== FORMA DE PAGAMENTO =====\n");
     printf("1 - Cartao de credito (+10%%)\n");
     printf("2 - Cartao de debito (+5%%)\n");
     printf("3 - A vista (sem acrescimo)\n");
 
-    printf("\nEscolha uma opcao: ");
-    scanf("%d", &opcao);
+    lerTexto("\nEscolha uma opcao: ", entrada, sizeof(entrada));
+
+    if (sscanf(entrada, "%d", &opcao) != 1)
+    {
+        printf("\nOpcao invalida!\n");
+        return -1;
+    }
 
     switch (opcao)
     {
@@ -311,7 +317,8 @@ double escolherFormaPagamento(double valor)
         return -1;
     }
 
-    printf("\nValor original: R$ %.2f\n", valor);
+    printf("\n===== RESUMO DO PAGAMENTO =====\n");
+    printf("Valor original: R$ %.2f\n", valor);
     printf("Valor final: R$ %.2f\n", valorFinal);
 
     return valorFinal;
@@ -541,6 +548,7 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
         {
             double valor;
             double valorFinal;
+            char pausa[10];
 
             realizarPagamento();
 
@@ -550,9 +558,10 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
             {
                 printf("\nValor invalido!\n");
 
-                while (getchar() != '\n')
+                while (getchar() != '\n' && !feof(stdin))
                     ;
 
+                lerTexto("\nPressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                 break;
             }
 
@@ -565,8 +574,7 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
                 descontarSaldo(db, idUsuario, valorFinal);
             }
 
-            printf("\nPressione ENTER para voltar ao menu...");
-            getchar();
+            lerTexto("\nPressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
 
             break;
         }
