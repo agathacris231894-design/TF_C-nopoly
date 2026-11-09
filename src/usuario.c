@@ -24,7 +24,7 @@ void cadastrarUsuario(sqlite3 *db)
 
     usuario.saldo = 0.0;
     
-    lerTexto("\n                        Digite seu nome completo: ", usuario.nome, sizeof(usuario.nome));
+    lerTexto("\n                                                  Digite seu nome completo: ", usuario.nome, sizeof(usuario.nome));
 
     if (strlen(usuario.nome) == 0)
     {
@@ -32,7 +32,7 @@ void cadastrarUsuario(sqlite3 *db)
         return;
     }
 
-    lerTexto("\n                        Digite seu CPF (somente numeros): ", usuario.cpf, sizeof(usuario.cpf));
+    lerTexto("\n                                                  Digite seu CPF (somente numeros): ", usuario.cpf, sizeof(usuario.cpf));
 
     if (!validarCPF(usuario.cpf))
     {
@@ -40,7 +40,7 @@ void cadastrarUsuario(sqlite3 *db)
         return;
     }
 
-    lerTexto("\n                        Crie uma senha: ", usuario.senha, sizeof(usuario.senha));
+    lerTexto("\n                                                  Crie uma senha: ", usuario.senha, sizeof(usuario.senha));
 
     if (strlen(usuario.senha) == 0)
     {
@@ -101,8 +101,7 @@ void cadastrarUsuario(sqlite3 *db)
     else
     {
 
-        printf("\n\t\t\t\t\t\tErro ao salvar cadastro: %s\n",
-               sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao salvar cadastro: %s\n", sqlite3_errmsg(db));
     }
 
     sqlite3_finalize(stmt);
@@ -126,7 +125,7 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
 
     printf("\n======================================================== LOGIN ========================================================\n");
 
-    lerTexto("\n                        CPF: ", cpf, sizeof(cpf));
+    lerTexto("\n                                                  CPF: ", cpf, sizeof(cpf));
 
     if (!validarCPF(cpf))
     {
@@ -134,7 +133,7 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
         return 0;
     }
 
-    lerTexto("\n                        Senha: ", senha, sizeof(senha));
+    lerTexto("\n                                                  Senha: ", senha, sizeof(senha));
 
     const char *sql =
         "SELECT id, nome_completo, saldo "
@@ -196,49 +195,6 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
 }
 
 // ==========================================
-// FUNCAO PARA CONSULTAR DADOS DO USUARIO (NOME, CPF E SALDO)
-// ==========================================
-
-double consultarSaldo(sqlite3 *db, int idUsuario)
-{
-    const char *sql =
-        "SELECT saldo FROM usuarios WHERE id = ?;";
-
-    sqlite3_stmt *stmt = NULL;
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
-    {
-        printf("\n\t\t\t\t\t\tErro ao preparar consulta de saldo: %s\n",
-               sqlite3_errmsg(db));
-
-        return -1.0;
-    }
-
-    sqlite3_bind_int(stmt, 1, idUsuario);
-
-    int resultado = sqlite3_step(stmt);
-    double saldo = -1.0;
-
-    if (resultado == SQLITE_ROW)
-    {
-        saldo = sqlite3_column_double(stmt, 0);
-    }
-    else if (resultado == SQLITE_DONE)
-    {
-        printf("\n\t\t\t\t\t\tUsuario nao encontrado.\n");
-    }
-    else
-    {
-        printf("\n\t\t\t\t\t\tErro ao consultar saldo: %s\n",
-               sqlite3_errmsg(db));
-    }
-
-    sqlite3_finalize(stmt);
-
-    return saldo;
-}
-
-// ==========================================
 // FUNCAO BUSCAR E DELETAR USUARIOS
 // ==========================================
 
@@ -271,14 +227,11 @@ void deletarUsuario(sqlite3 *db) {
     if (sqlite3_step(stmt) == SQLITE_ROW) {
 
         // 3. Preencher a struct com os dados do banco
-        snprintf(usuario.nome, sizeof(usuario.nome), "%s",
-                 (const char *)sqlite3_column_text(stmt, 0));
+        snprintf(usuario.nome, sizeof(usuario.nome), "%s", (const char *)sqlite3_column_text(stmt, 0));
 
-        snprintf(usuario.cpf, sizeof(usuario.cpf), "%s",
-                 (const char *)sqlite3_column_text(stmt, 1));
+        snprintf(usuario.cpf, sizeof(usuario.cpf), "%s", (const char *)sqlite3_column_text(stmt, 1));
 
-        snprintf(usuario.senha, sizeof(usuario.senha), "%s",
-                 (const char *)sqlite3_column_text(stmt, 2));
+        snprintf(usuario.senha, sizeof(usuario.senha), "%s", (const char *)sqlite3_column_text(stmt, 2));
 
         usuario.saldo = sqlite3_column_double(stmt, 3);
 

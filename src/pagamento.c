@@ -6,6 +6,7 @@
 #include "pagamento.h"
 #include "utilidade.h"
 #include "transacao.h"
+#include "conta.h"
 
 // ==========================================
 // FUNCAO REALIZAR PAGAMENTO
@@ -22,7 +23,7 @@ int realizarPagamento(char *descricao, int tamanho)
 
     printf("\n================================================== REALIZAR PAGAMENTO ================================================\n");
 
-    lerTexto("\n                        Qual conta deseja pagar? ", descricao, tamanho);
+    lerTexto("\n                                                  Qual conta deseja pagar? ", descricao, tamanho);
 
     if (strlen(descricao) == 0)
     {
@@ -59,7 +60,7 @@ double escolherFormaPagamento(double valor)
     printf("\n\t\t\t\t\t\t2 - Cartao de debito (+5%%)\n");
     printf("\n\t\t\t\t\t\t3 - PIX (sem acrescimo)\n");
 
-    lerTexto("\n                        Escolha uma opcao: ", entrada, sizeof(entrada));
+    lerTexto("\n                                                  Escolha uma opcao: ", entrada, sizeof(entrada));
 
     if (sscanf(entrada, "%d", &opcao) != 1)
     {
@@ -152,8 +153,7 @@ int descontarSaldo(sqlite3 *db, int idUsuario, double valorFinal, const char *de
 
     if (resultado != SQLITE_OK)
     {
-        printf("\n\t\t\t\t\t\tErro ao associar dados do pagamento: %s\n",
-               sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao associar dados do pagamento: %s\n", sqlite3_errmsg(db));
 
         sqlite3_finalize(stmt);
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
@@ -195,8 +195,7 @@ int descontarSaldo(sqlite3 *db, int idUsuario, double valorFinal, const char *de
     // Monta a descricao antes de preparar o INSERT.
     char descricaoCompleta[150];
 
-    snprintf(descricaoCompleta, sizeof(descricaoCompleta),
-             "Pagamento - %s", descricao);
+    snprintf(descricaoCompleta, sizeof(descricaoCompleta), "Pagamento - %s", descricao);
 
     const char *sqlRegistro =
         "INSERT INTO transacoes "

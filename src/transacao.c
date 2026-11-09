@@ -67,15 +67,14 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
     sqlite3_finalize(stmt);
 
     char pausa[10];
-    lerTexto("\n                        Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+    lerTexto("\n                                                  Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
 }
 
 // ==========================================
 // FUNÇÃO REGISTRAR TRANSAÇÕES
 // ==========================================
 
-int registrarTransacao(sqlite3 *db, int idUsuario,
-                       const char *descricao, double valor)
+int registrarTransacao(sqlite3 *db, int idUsuario, const char *descricao, double valor)
 {
     sqlite3_stmt *stmt;
     const char *sql =
@@ -135,7 +134,7 @@ void transferirValores(sqlite3 *db, int idUsuario)
 
 
     // 1. Solicita o CPF do destinatario
-    lerTexto("\n                        Digite o CPF do destinatario: ", cpfDestino, sizeof(cpfDestino));
+    lerTexto("\n                                                  Digite o CPF do destinatario: ", cpfDestino, sizeof(cpfDestino));
 
     if (strlen(cpfDestino) == 0) {
         printf("\n\t\t\t\t\t\tCPF nao informado!\n");
@@ -204,8 +203,7 @@ void transferirValores(sqlite3 *db, int idUsuario)
     }
 
     // 6. Busca o nome de quem esta transferindo
-    const char *sqlOrigem =
-        "SELECT nome_completo FROM usuarios WHERE id = ?;";
+    const char *sqlOrigem = "SELECT nome_completo FROM usuarios WHERE id = ?;";
 
     resultado = sqlite3_prepare_v2(
         db, sqlOrigem, -1, &stmt, NULL
@@ -224,8 +222,7 @@ void transferirValores(sqlite3 *db, int idUsuario)
         goto erroTransferencia;
     }
 
-    snprintf(nomeOrigem, sizeof(nomeOrigem), "%s",
-             (const char *)sqlite3_column_text(stmt, 0));
+    snprintf(nomeOrigem, sizeof(nomeOrigem), "%s", (const char *)sqlite3_column_text(stmt, 0));
 
     sqlite3_finalize(stmt);
 
@@ -289,11 +286,9 @@ void transferirValores(sqlite3 *db, int idUsuario)
     }
 
     // 9. Monta as descricoes das movimentacoes
-    snprintf(descricaoSaida, sizeof(descricaoSaida),
-             "Transferencia enviada para %s", nomeDestino);
+    snprintf(descricaoSaida, sizeof(descricaoSaida), "Transferencia enviada para %s", nomeDestino);
 
-    snprintf(descricaoEntrada, sizeof(descricaoEntrada),
-             "Transferencia recebida de %s", nomeOrigem);
+    snprintf(descricaoEntrada, sizeof(descricaoEntrada), "Transferencia recebida de %s", nomeOrigem);
 
     // 10. Registra a saida no extrato de quem enviou
     if (!registrarTransacao(db, idUsuario, descricaoSaida, -valor)) {

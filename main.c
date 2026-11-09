@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sqlite3.h>
+#include <math.h>
 
 #include "usuario.h"
 #include "utilidade.h"
@@ -56,7 +57,7 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
 
                 if (!realizarPagamento(descricao, sizeof(descricao)))
                 {
-                    lerTexto("\n                        Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                    lerTexto("\n                                         Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                     break;
                 }
 
@@ -64,7 +65,7 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
                 {
                     printf("\n\t\t\t\t\t\tValor invalido!\n");
 
-                    lerTexto("\n                        Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                    lerTexto("\n                                         Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                     break;
                 }
 
@@ -74,13 +75,13 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
                 {
                     printf("\n\t\t\t\t\t\tNao foi possivel calcular o pagamento.\n");
 
-                    lerTexto("\n                        Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                    lerTexto("\n                                         Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                     break;
                 }
 
                 descontarSaldo(db, idUsuario, valorFinal, descricao);
 
-                lerTexto("\n                            Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                lerTexto("\n                                             Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
 
                 break;
             }
@@ -214,7 +215,7 @@ int main(void)
 
         printf("\t\t\t\t\t\t");
 
-        if (!lerOpcao("Escolha uma opcao: ", &opcao))
+        if (!lerOpcao("\n                                             Escolha uma opcao: ", &opcao))
         {
             printf("\n\t\t\t\t\t\tEntrada invalida.\n");
             opcao = -1;

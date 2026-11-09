@@ -25,7 +25,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
     printf("\n==================================================== ALTERAR SENHA ===================================================\n\n");
 
 
-    lerTexto("\n                        Digite sua senha atual: ", senhaAtual, sizeof(senhaAtual));
+    lerTexto("\n                                                  Digite sua senha atual: ", senhaAtual, sizeof(senhaAtual));
 
     // Verifica se a senha atual esta correta
     const char *sql = "SELECT senha FROM usuarios WHERE id = ?;";
@@ -68,7 +68,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
     sqlite3_finalize(stmt);
 
     // Solicita a nova senha
-    lerTexto("\n                        Digite sua nova senha: ", novaSenha, sizeof(novaSenha));
+    lerTexto("\n                                                  Digite sua nova senha: ", novaSenha, sizeof(novaSenha));
 
     if (strlen(novaSenha) == 0)
     {
@@ -76,7 +76,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
         return;
     }
 
-    lerTexto("\n                        Confirme sua nova senha: ", confirmarSenha, sizeof(confirmarSenha));
+    lerTexto("\n                                                  Confirme sua nova senha: ", confirmarSenha, sizeof(confirmarSenha));
 
     if (strcmp(novaSenha, confirmarSenha) != 0)
     {
@@ -132,8 +132,7 @@ double consultarSaldo(sqlite3 *db, int idUsuario)
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("\n\t\t\t\t\t\tErro ao preparar consulta de saldo: %s\n",
-               sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao preparar consulta de saldo: %s\n", sqlite3_errmsg(db));
 
         return -1.0;
     }
@@ -153,8 +152,7 @@ double consultarSaldo(sqlite3 *db, int idUsuario)
     }
     else
     {
-        printf("\n\t\t\t\t\t\tErro ao consultar saldo: %s\n",
-               sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao consultar saldo: %s\n", sqlite3_errmsg(db));
     }
 
     sqlite3_finalize(stmt);
@@ -190,7 +188,14 @@ void consultarDados(sqlite3 *db, int idUsuario)
         const unsigned char *cpf = sqlite3_column_text(stmt, 1);
         double saldo = sqlite3_column_double(stmt, 2);
 
-        printf("\n===== DADOS DA CONTA =====\n");
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n==================================================== DADOS DA CONTA ==================================================\n\n");
+
 
         printf("\n\t\t\t\t\t\tNome: %s\n", nome);
         printf("\n\t\t\t\t\t\tCPF: %s\n", cpf);
@@ -207,20 +212,13 @@ void consultarDados(sqlite3 *db, int idUsuario)
 
     int opcao;
 
-    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
-
-    printf("\n====================================================== C-NOPOLY ======================================================\n");
-
-    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
-
     printf("\n======================================================= OPCOES =======================================================\n\n");
-
 
     printf("\n\t\t\t\t\t\t1 - Adicionar dinheiro a conta\n");
     printf("\n\t\t\t\t\t\t2 - Alterar senha de login\n");
     printf("\n\t\t\t\t\t\t0 - Voltar ao menu principal\n");
 
-    if (!lerOpcao("\nEscolha uma opcao: ", &opcao))
+    if (!lerOpcao("\n                                                  Escolha uma opcao: ", &opcao))
     {
         printf("\n\t\t\t\t\t\tOpcao invalida!\n");
         return;
@@ -247,7 +245,7 @@ void consultarDados(sqlite3 *db, int idUsuario)
 
     char pausa[10];
 
-    lerTexto("\n                             Pressione ENTER para continuar...", pausa, sizeof(pausa));
+    lerTexto("\n                                                  Pressione ENTER para continuar...", pausa, sizeof(pausa));
 
 }
 
@@ -280,8 +278,7 @@ void adicionarDinheiro(sqlite3 *db, int idUsuario)
         return;
     }
 
-    const char *sql =
-        "UPDATE usuarios SET saldo = saldo + ? WHERE id = ?;";
+    const char *sql = "UPDATE usuarios SET saldo = saldo + ? WHERE id = ?;";
 
     sqlite3_stmt *stmt = NULL;
 
