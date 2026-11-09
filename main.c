@@ -5,6 +5,12 @@
 #include <math.h>
 #include "sqlite3.h"
 
+int lerOpcao(const char *mensagem, int *opcao);
+
+int registrarTransacao(sqlite3 *db, int idUsuario, const char *descricao, double valor);
+
+void transferirValores(sqlite3 *db, int idUsuario);
+
 // ==========================================
 // FUNCAO PARA LER TEXTOS
 // ==========================================
@@ -138,8 +144,7 @@ void cadastrarUsuario(sqlite3 *db)
 
     printf("\n====================================================== CADASTRO ======================================================\n");
 
-    printf("\t\t\t\t\t\t");
-    lerTexto("Digite seu nome completo: ", nome, sizeof(nome));
+    lerTexto("\t\t\t\t\t\t\nDigite seu nome completo: ", nome, sizeof(nome));
 
     if (strlen(nome) == 0)
     {
@@ -147,8 +152,7 @@ void cadastrarUsuario(sqlite3 *db)
         return;
     }
 
-    printf("\t\t\t\t\t\t");
-    lerTexto("\nDigite seu CPF (somente numeros): ", cpf, sizeof(cpf));
+    lerTexto("\n\t\t\t\t\t\tDigite seu CPF (somente numeros): ", cpf, sizeof(cpf));
 
     if (!validarCPF(cpf))
     {
@@ -156,8 +160,7 @@ void cadastrarUsuario(sqlite3 *db)
         return;
     }
 
-    printf("\t\t\t\t\t\t");
-    lerTexto("\nCrie uma senha: ", senha, sizeof(senha));
+    lerTexto("\n\t\t\t\t\t\tCrie uma senha: ", senha, sizeof(senha));
 
     if (strlen(senha) == 0)
     {
@@ -175,7 +178,7 @@ void cadastrarUsuario(sqlite3 *db)
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
 
-        printf("Erro ao preparar cadastro: %s\n",
+        printf("\n\t\t\t\t\t\tErro ao preparar cadastro: %s\n",
                sqlite3_errmsg(db));
 
         return;
@@ -197,7 +200,8 @@ void cadastrarUsuario(sqlite3 *db)
 
     if (resultado != SQLITE_OK)
     {
-        printf("Erro ao associar dados: %s\n", sqlite3_errmsg(db));
+        printf("\t\t\t\t\t\tErro ao associar dados: %s\n", sqlite3_errmsg(db));
+
         sqlite3_finalize(stmt);
         return;
     }
@@ -243,17 +247,15 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
 
     printf("\n======================================================== LOGIN ========================================================\n");
 
-    printf("\t\t\t\t\t\t");
-    lerTexto("\nCPF: ", cpf, sizeof(cpf));
+    lerTexto("\n\t\t\t\t\t\tCPF: ", cpf, sizeof(cpf));
 
     if (!validarCPF(cpf))
     {
-        printf("\nCPF invalido!\n");
+        printf("\n\t\t\t\t\t\tCPF invalido!\n");
         return 0;
     }
 
-    printf("\t\t\t\t\t\t");
-    lerTexto("\nSenha: ", senha, sizeof(senha));
+    lerTexto("\n\t\t\t\t\t\tSenha: ", senha, sizeof(senha));
 
     const char *sql =
         "SELECT id, nome_completo, saldo "
@@ -265,7 +267,7 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
 
-        printf("Erro ao consultar banco: %s\n",
+        printf("\t\t\t\t\t\t\nErro ao consultar banco: %s\n",
                sqlite3_errmsg(db));
 
         return 0;
@@ -280,7 +282,7 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
 
     if (resultado != SQLITE_OK)
     {
-        printf("Erro ao associar dados: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao associar dados: %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
         return 0;
     }
@@ -294,8 +296,8 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
 
         const unsigned char *nome = sqlite3_column_text(stmt, 1);
 
-        printf("\nLogin realizado com sucesso!\n\n");
-        printf("Bem-vindo(a), %s!\n\n", nome);
+        printf("\n\t\t\t\t\t\tLogin realizado com sucesso!\n\n");
+        printf("\n\t\t\t\t\t\tBem-vindo(a), %s!\n\n", nome);
 
         autenticado = 1;
     }
@@ -306,7 +308,7 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
     }
     else
     {
-        printf("\nErro durante a verificacao: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro durante a verificacao: %s\n", sqlite3_errmsg(db));
     }
 
     sqlite3_finalize(stmt);
@@ -324,9 +326,16 @@ void alterarSenha(sqlite3 *db, int idUsuario)
     char novaSenha[100];
     char confirmarSenha[100];
 
-    printf("\n===== ALTERAR SENHA =====\n");
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
-    lerTexto("Digite sua senha atual: ", senhaAtual, sizeof(senhaAtual));
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n==================================================== ALTERAR SENHA ===================================================\n\n");
+
+
+    lerTexto("\n\t\t\t\t\t\tDigite sua senha atual: ", senhaAtual, sizeof(senhaAtual));
 
     // Verifica se a senha atual esta correta
     const char *sql = "SELECT senha FROM usuarios WHERE id = ?;";
@@ -335,7 +344,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("Erro ao verificar senha: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao verificar senha: %s\n", sqlite3_errmsg(db));
         return;
     }
 
@@ -345,14 +354,14 @@ void alterarSenha(sqlite3 *db, int idUsuario)
 
     if (resultado == SQLITE_DONE)
     {
-        printf("Usuario nao encontrado.\n");
+        printf("\n\t\t\t\t\t\tUsuario nao encontrado.\n");
         sqlite3_finalize(stmt);
         return;
     }
 
     if (resultado != SQLITE_ROW)
     {
-        printf("Erro ao consultar usuario: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao consultar usuario: %s\n", sqlite3_errmsg(db));
         sqlite3_finalize(stmt);
         return;
     }
@@ -361,7 +370,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
 
     if (strcmp(senhaAtual, (const char *)senhaBanco) != 0)
     {
-        printf("\nSenha atual incorreta!\n");
+        printf("\n\t\t\t\t\t\tSenha atual incorreta!\n");
         sqlite3_finalize(stmt);
         return;
     }
@@ -369,27 +378,25 @@ void alterarSenha(sqlite3 *db, int idUsuario)
     sqlite3_finalize(stmt);
 
     // Solicita a nova senha
-    lerTexto("\nDigite sua nova senha: ",
-             novaSenha, sizeof(novaSenha));
+    lerTexto("\n\t\t\t\t\t\tDigite sua nova senha: ", novaSenha, sizeof(novaSenha));
 
     if (strlen(novaSenha) == 0)
     {
-        printf("\nA nova senha nao pode ficar vazia.\n");
+        printf("\n\t\t\t\t\t\tA nova senha nao pode ficar vazia.\n");
         return;
     }
 
-    lerTexto("Confirme sua nova senha: ",
-             confirmarSenha, sizeof(confirmarSenha));
+    lerTexto("\n\t\t\t\t\t\tConfirme sua nova senha: ", confirmarSenha, sizeof(confirmarSenha));
 
     if (strcmp(novaSenha, confirmarSenha) != 0)
     {
-        printf("\nAs senhas nao correspondem!\n");
+        printf("\n\t\t\t\t\t\tAs senhas nao correspondem!\n");
         return;
     }
 
     if (strlen(novaSenha) < 8)
     {
-        printf("\nA senha deve possuir pelo menos 8 caracteres.\n");
+        printf("\n\t\t\t\t\t\tA senha deve possuir pelo menos 8 caracteres.\n");
         return;
     }
 
@@ -401,7 +408,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
 
     if (sqlite3_prepare_v2(db, sqlAtualizar, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("Erro ao preparar alteracao: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao preparar alteracao: %s\n", sqlite3_errmsg(db));
         return;
     }
 
@@ -412,11 +419,11 @@ void alterarSenha(sqlite3 *db, int idUsuario)
 
     if (resultado == SQLITE_DONE)
     {
-        printf("\nSenha alterada com sucesso!\n");
+        printf("\n\t\t\t\t\t\tSenha alterada com sucesso!\n");
     }
     else
     {
-        printf("\nErro ao alterar senha: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao alterar senha: %s\n", sqlite3_errmsg(db));
     }
 
     sqlite3_finalize(stmt);
@@ -435,7 +442,7 @@ double consultarSaldo(sqlite3 *db, int idUsuario)
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("Erro ao preparar consulta de saldo: %s\n",
+        printf("\n\t\t\t\t\t\tErro ao preparar consulta de saldo: %s\n",
                sqlite3_errmsg(db));
 
         return -1.0;
@@ -452,11 +459,11 @@ double consultarSaldo(sqlite3 *db, int idUsuario)
     }
     else if (resultado == SQLITE_DONE)
     {
-        printf("Usuario nao encontrado.\n");
+        printf("\n\t\t\t\t\t\tUsuario nao encontrado.\n");
     }
     else
     {
-        printf("Erro ao consultar saldo: %s\n",
+        printf("\n\t\t\t\t\t\tErro ao consultar saldo: %s\n",
                sqlite3_errmsg(db));
     }
 
@@ -472,18 +479,25 @@ double consultarSaldo(sqlite3 *db, int idUsuario)
 
 int realizarPagamento(char *descricao, int tamanho)
 {
-    printf("\n===== REALIZAR PAGAMENTO =====\n");
 
-    lerTexto("Qual conta deseja pagar? ", descricao, tamanho);
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n================================================== REALIZAR PAGAMENTO ================================================\n");
+
+    lerTexto("\n\t\t\t\t\t\tQual conta deseja pagar? ", descricao, tamanho);
 
     if (strlen(descricao) == 0)
     {
-        printf("A descricao nao pode ficar vazia.\n");
+        printf("\n\t\t\t\t\t\tA descricao nao pode ficar vazia.\n");
         descricao[0] = '\0';
         return 0;
     }
 
-    printf("\nConta selecionada: %s\n", descricao);
+    printf("\n\t\t\t\t\t\tConta selecionada: %s\n", descricao);
 
     return 1;
 }
@@ -498,17 +512,25 @@ double escolherFormaPagamento(double valor)
     double valorFinal;
     char entrada[20];
 
-    printf("\n===== FORMA DE PAGAMENTO =====\n");
-    printf("1 - Cartao de credito (+10%%)\n");
-    printf("2 - Cartao de debito (+5%%)\n");
-    printf("3 - PIX (sem acrescimo)\n");
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
-    lerTexto("\nEscolha uma opcao: ", entrada, sizeof(entrada));
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n================================================= FORMA DE PAGAMENTO =================================================\n\n");
+
+
+    printf("\n\t\t\t\t\t\t1 - Cartao de credito (+10%%)\n");
+    printf("\n\t\t\t\t\t\t2 - Cartao de debito (+5%%)\n");
+    printf("\n\t\t\t\t\t\t3 - PIX (sem acrescimo)\n");
+
+    lerTexto("\n\t\t\t\t\t\tEscolha uma opcao: ", entrada, sizeof(entrada));
 
     if (sscanf(entrada, "%d", &opcao) != 1)
     {
-        printf("\nOpcao invalida!\n");
-        return -1;
+        printf("\n\t\t\t\t\t\tOpcao invalida!\n");
+        return 0.0;
     }
 
     switch (opcao)
@@ -526,13 +548,20 @@ double escolherFormaPagamento(double valor)
         break;
 
     default:
-        printf("\nOpcao invalida!\n");
+        printf("\n\t\t\t\t\t\tOpcao invalida!\n");
         return -1;
     }
 
-    printf("\n===== RESUMO DO PAGAMENTO =====\n");
-    printf("Valor original: R$ %.2f\n", valor);
-    printf("Valor final: R$ %.2f\n", valorFinal);
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n======================================================= RESUMO =======================================================\n\n");
+
+    printf("\n\t\t\t\t\t\tValor original: R$ %.2f\n", valor);
+    printf("\n\t\t\t\t\t\tValor final: R$ %.2f\n", valorFinal);
 
     return valorFinal;
 }
@@ -576,17 +605,24 @@ void adicionarDinheiro(sqlite3 *db, int idUsuario)
 {
     double valor;
 
-    printf("\n===== ADICIONAR DINHEIRO =====\n");
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n===================================================== ADICIONAR $ ====================================================\n\n");
+
 
     if (!lerValorPositivo("Digite o valor que deseja adicionar: R$ ", &valor))
     {
-        printf("\nValor invalido!\n");
+        printf("\n\t\t\t\t\t\tValor invalido!\n");
         return;
     }
 
     if (sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL) != SQLITE_OK)
     {
-        printf("Erro ao iniciar operacao: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao iniciar operacao: %s\n", sqlite3_errmsg(db));
         return;
     }
 
@@ -597,7 +633,7 @@ void adicionarDinheiro(sqlite3 *db, int idUsuario)
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("Erro ao preparar atualizacao: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao preparar atualizacao: %s\n", sqlite3_errmsg(db));
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return;
     }
@@ -612,7 +648,7 @@ void adicionarDinheiro(sqlite3 *db, int idUsuario)
 
     if (resultado != SQLITE_DONE || linhasAlteradas == 0)
     {
-        printf("Erro ao adicionar dinheiro.\n");
+        printf("\n\t\t\t\t\t\tErro ao adicionar dinheiro.\n");
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return;
     }
@@ -625,7 +661,7 @@ void adicionarDinheiro(sqlite3 *db, int idUsuario)
 
     if (sqlite3_prepare_v2(db, sqlRegistro, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("Erro ao preparar registro: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao preparar registro: %s\n", sqlite3_errmsg(db));
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return;
     }
@@ -639,19 +675,19 @@ void adicionarDinheiro(sqlite3 *db, int idUsuario)
 
     if (resultado != SQLITE_DONE)
     {
-        printf("Erro ao registrar adicao: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao registrar adicao: %s\n", sqlite3_errmsg(db));
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return;
     }
 
     if (sqlite3_exec(db, "COMMIT;", NULL, NULL, NULL) != SQLITE_OK)
     {
-        printf("Erro ao confirmar operacao: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao confirmar operacao: %s\n", sqlite3_errmsg(db));
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return;
     }
 
-    printf("\nR$ %.2f adicionados com sucesso!\n", valor);
+    printf("\n\t\t\t\t\t\tR$ %.2f adicionados com sucesso!\n", valor);
 }
 
 // ==========================================
@@ -668,7 +704,7 @@ void consultarDados(sqlite3 *db, int idUsuario)
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("Erro ao consultar dados: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao consultar dados: %s\n", sqlite3_errmsg(db));
         return;
     }
 
@@ -683,13 +719,14 @@ void consultarDados(sqlite3 *db, int idUsuario)
         double saldo = sqlite3_column_double(stmt, 2);
 
         printf("\n===== DADOS DA CONTA =====\n");
-        printf("Nome: %s\n", nome);
-        printf("CPF: %s\n", cpf);
-        printf("Saldo: R$ %.2f\n", saldo);
+
+        printf("\n\t\t\t\t\t\tNome: %s\n", nome);
+        printf("\n\t\t\t\t\t\tCPF: %s\n", cpf);
+        printf("\n\t\t\t\t\t\tSaldo: R$ %.2f\n", saldo);
     }
     else
     {
-        printf("Usuario nao encontrado.\n");
+        printf("\n\t\t\t\t\t\tUsuario nao encontrado.\n");
         sqlite3_finalize(stmt);
         return;
     }
@@ -698,15 +735,23 @@ void consultarDados(sqlite3 *db, int idUsuario)
 
     int opcao;
 
-    printf("\n===== OPCOES =====\n");
-    printf("1 - Adicionar dinheiro a conta\n");
-    printf("2 - Alterar senha de login\n");
-    printf("0 - Voltar ao menu principal\n");
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n======================================================= OPCOES =======================================================\n\n");
+
+
+    printf("\n\t\t\t\t\t\t1 - Adicionar dinheiro a conta\n");
+    printf("\n\t\t\t\t\t\t2 - Alterar senha de login\n");
+    printf("\n\t\t\t\t\t\t0 - Voltar ao menu principal\n");
 
     if (!lerOpcao("\nEscolha uma opcao: ", &opcao))
     {
-        printf("\nOpcao invalida!\n");
-        return -1;
+        printf("\n\t\t\t\t\t\tOpcao invalida!\n");
+        return;
     }
 
     switch (opcao)
@@ -720,17 +765,17 @@ void consultarDados(sqlite3 *db, int idUsuario)
         break;
 
     case 0:
-        printf("\nVoltando ao menu principal...\n");
+        printf("\n\t\t\t\t\t\tVoltando ao menu principal...\n");
         break;
 
     default:
-        printf("\nOpcao invalida!\n");
+        printf("\n\t\t\t\t\t\tOpcao invalida!\n");
         break;
     }
 
     char pausa[10];
 
-    lerTexto("\nPressione ENTER para continuar...", pausa, sizeof(pausa));
+    lerTexto("\n\t\t\t\t\t\tPressione ENTER para continuar...", pausa, sizeof(pausa));
 
 }
 
@@ -738,24 +783,23 @@ void consultarDados(sqlite3 *db, int idUsuario)
 // FUNCAO PARA DESCONTAR SALDO E SALVAR NO BANCO
 // ==========================================
 
-int descontarSaldo(sqlite3 *db, int idUsuario,
-                   double valorFinal, const char *descricao)
+int descontarSaldo(sqlite3 *db, int idUsuario, double valorFinal, const char *descricao)
 {
     if (!isfinite(valorFinal) || valorFinal <= 0)
     {
-        printf("\nValor de pagamento invalido!\n");
+        printf("\n\t\t\t\t\t\tValor de pagamento invalido!\n");
         return 0;
     }
 
     if (descricao == NULL || descricao[0] == '\0')
     {
-        printf("\nDescricao do pagamento invalida!\n");
+        printf("\n\t\t\t\t\t\tDescricao do pagamento invalida!\n");
         return 0;
     }
 
     if (sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL) != SQLITE_OK)
     {
-        printf("Erro ao iniciar pagamento: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao iniciar pagamento: %s\n", sqlite3_errmsg(db));
         return 0;
     }
 
@@ -768,7 +812,7 @@ int descontarSaldo(sqlite3 *db, int idUsuario,
 
     if (sqlite3_prepare_v2(db, sqlAtualizar, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("Erro ao preparar pagamento: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao preparar pagamento: %s\n", sqlite3_errmsg(db));
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return 0;
     }
@@ -787,7 +831,7 @@ int descontarSaldo(sqlite3 *db, int idUsuario,
 
     if (resultado != SQLITE_OK)
     {
-        printf("Erro ao associar dados do pagamento: %s\n",
+        printf("\n\t\t\t\t\t\tErro ao associar dados do pagamento: %s\n",
                sqlite3_errmsg(db));
 
         sqlite3_finalize(stmt);
@@ -807,21 +851,21 @@ int descontarSaldo(sqlite3 *db, int idUsuario,
 
         double saldoAtual = consultarSaldo(db, idUsuario);
 
-        printf("\nPagamento nao realizado!\n");
+        printf("Pagamento nao realizado!\n");
 
         if (saldoAtual < 0)
         {
-            printf("Nao foi possivel consultar a conta.\n");
+            printf("\n\t\t\t\t\t\tNao foi possivel consultar a conta.\n");
         }
         else if (saldoAtual < valorFinal)
         {
-            printf("Seu saldo e inferior ao total da conta a pagar.\n");
-            printf("Saldo atual: R$ %.2f\n", saldoAtual);
-            printf("Total da conta: R$ %.2f\n", valorFinal);
+            printf("\n\t\t\t\t\t\tSeu saldo e inferior ao total da conta a pagar.\n");
+            printf("\n\t\t\t\t\t\tSaldo atual: R$ %.2f\n", saldoAtual);
+            printf("\n\t\t\t\t\t\tTotal da conta: R$ %.2f\n", valorFinal);
         }
         else
         {
-            printf("Nao foi possivel localizar ou atualizar o usuario.\n");
+            printf("\n\t\t\t\t\t\tNao foi possivel localizar ou atualizar o usuario.\n");
         }
 
         return 0;
@@ -842,7 +886,7 @@ int descontarSaldo(sqlite3 *db, int idUsuario,
 
     if (sqlite3_prepare_v2(db, sqlRegistro, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("Erro ao preparar registro: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao preparar registro: %s\n", sqlite3_errmsg(db));
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return 0;
     }
@@ -862,7 +906,7 @@ int descontarSaldo(sqlite3 *db, int idUsuario,
 
     if (resultado != SQLITE_OK)
     {
-        printf("Erro ao associar dados do registro: %s\n",
+        printf("\n\t\t\t\t\t\tErro ao associar dados do registro: %s\n",
                sqlite3_errmsg(db));
 
         sqlite3_finalize(stmt);
@@ -875,20 +919,20 @@ int descontarSaldo(sqlite3 *db, int idUsuario,
 
     if (resultado != SQLITE_DONE)
     {
-        printf("Erro ao registrar pagamento: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao registrar pagamento: %s\n", sqlite3_errmsg(db));
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return 0;
     }
 
     if (sqlite3_exec(db, "COMMIT;", NULL, NULL, NULL) != SQLITE_OK)
     {
-        printf("Erro ao confirmar pagamento: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao confirmar pagamento: %s\n", sqlite3_errmsg(db));
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return 0;
     }
 
-    printf("\nPagamento realizado com sucesso!\n");
-    printf("Valor descontado: R$ %.2f\n", valorFinal);
+    printf("\n\t\t\t\t\t\tPagamento realizado com sucesso!\n");
+    printf("\n\t\t\t\t\t\tValor descontado: R$ %.2f\n", valorFinal);
 
     return 1;
 }
@@ -942,13 +986,20 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
-        printf("Erro ao consultar extrato: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao consultar extrato: %s\n", sqlite3_errmsg(db));
         return;
     }
 
     sqlite3_bind_int(stmt, 1, idUsuario);
 
-    printf("\n========== EXTRATO DA CONTA ==========\n");
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n====================================================== EXTRATO =======================================================\n\n");
+
 
     int resultado;
     int quantidade = 0;
@@ -959,28 +1010,299 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
         double valor = sqlite3_column_double(stmt, 1);
         const unsigned char *data = sqlite3_column_text(stmt, 2);
 
-        printf("\nDescricao: %s\n", descricao);
-        printf("Valor: R$ %.2f\n", valor);
-        printf("Data: %s\n", data);
-        printf("--------------------------------------\n");
+        printf("\n\t\t\t\t\t\tDescricao: %s\n", descricao);
+        printf("\n\t\t\t\t\t\tValor: R$ %.2f\n", valor);
+        printf("\n\t\t\t\t\t\tData: %s\n", data);
+        
+        printf("\n======================================================================================================================\n");
 
         quantidade++;
     }
 
     if (resultado != SQLITE_DONE)
     {
-        printf("Erro ao recuperar transacoes: %s\n", sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao recuperar transacoes: %s\n", sqlite3_errmsg(db));
     }
     else if (quantidade == 0)
     {
-        printf("\nNenhuma movimentacao encontrada.\n");
+        printf("\n\t\t\t\t\t\tNenhuma movimentacao encontrada.\n");
     }
 
     sqlite3_finalize(stmt);
 
     char pausa[10];
-    lerTexto("\nPressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+    lerTexto("\n\t\t\t\t\t\tPressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
 }
+
+// ==========================================
+// FUNÇÃO REGISTRAR TRANSAÇÕES
+// ==========================================
+
+int registrarTransacao(sqlite3 *db, int idUsuario,
+                       const char *descricao, double valor)
+{
+    sqlite3_stmt *stmt;
+    const char *sql =
+        "INSERT INTO transacoes "
+        "(usuario_id, descricao, valor, data_hora) "
+        "VALUES (?, ?, ?, datetime('now', 'localtime'));";
+
+    int resultado = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+    if (resultado != SQLITE_OK) {
+        return 0;
+    }
+
+    sqlite3_bind_int(stmt, 1, idUsuario);
+    sqlite3_bind_text(stmt, 2, descricao, -1, SQLITE_TRANSIENT);
+    sqlite3_bind_double(stmt, 3, valor);
+
+    resultado = sqlite3_step(stmt);
+
+    sqlite3_finalize(stmt);
+
+    return resultado == SQLITE_DONE;
+}
+
+// ==========================================
+// FUNÇÃO TRANSFERIR VALORES
+// ==========================================
+
+void transferirValores(sqlite3 *db, int idUsuario)
+{
+    sqlite3_stmt *stmt;
+
+    char cpfDestino[20];
+    char nomeDestino[100];
+    char nomeOrigem[100];
+
+    char descricaoSaida[200];
+    char descricaoEntrada[200];
+
+    int idDestino;
+    int resultado;
+
+    double valor;
+
+    if (db == NULL) {
+        printf("\n\t\t\t\t\t\tErro: banco de dados indisponivel.\n");
+        return;
+    }
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n==================================================== TRANSFERENCIA ===================================================\n\n");
+
+
+    // 1. Solicita o CPF do destinatario
+    lerTexto("\n\t\t\t\t\t\tDigite o CPF do destinatario: ", cpfDestino, sizeof(cpfDestino));
+
+    if (strlen(cpfDestino) == 0) {
+        printf("\n\t\t\t\t\t\tCPF nao informado!\n");
+        return;
+    }
+
+    // 2. Solicita o valor da transferencia
+    if (!lerValorPositivo("\nDigite o valor da transferencia: ", &valor)) {
+        printf("\n\t\t\t\t\t\tValor invalido!\n");
+        return;
+    }
+
+    // 3. Inicia uma transacao no SQLite
+    resultado = sqlite3_exec(
+        db,
+        "BEGIN IMMEDIATE TRANSACTION;",
+        NULL,
+        NULL,
+        NULL
+    );
+
+    if (resultado != SQLITE_OK) {
+        printf("\n\t\t\t\t\t\tErro ao iniciar transferencia: %s\n",
+               sqlite3_errmsg(db));
+        return;
+    }
+
+    // 4. Busca o destinatario pelo CPF
+    const char *sqlDestino =
+        "SELECT id, nome_completo FROM usuarios WHERE cpf = ?;";
+
+    resultado = sqlite3_prepare_v2(
+        db, sqlDestino, -1, &stmt, NULL
+    );
+
+    if (resultado != SQLITE_OK) {
+        goto erroTransferencia;
+    }
+
+    sqlite3_bind_text(stmt, 1, cpfDestino, -1, SQLITE_TRANSIENT);
+
+    resultado = sqlite3_step(stmt);
+
+    if (resultado != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+
+        printf("\n\t\t\t\t\t\tDestinatario nao encontrado!\n");
+
+        sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+        return;
+    }
+
+    idDestino = sqlite3_column_int(stmt, 0);
+
+    snprintf(nomeDestino, sizeof(nomeDestino), "%s",
+             (const char *)sqlite3_column_text(stmt, 1));
+
+    sqlite3_finalize(stmt);
+
+    // 5. Impede transferir para a propria conta
+    if (idDestino == idUsuario) {
+        printf("\n\t\t\t\t\t\tNao e possivel transferir para sua propria conta!\n");
+
+        sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+        return;
+    }
+
+    // 6. Busca o nome de quem esta transferindo
+    const char *sqlOrigem =
+        "SELECT nome_completo FROM usuarios WHERE id = ?;";
+
+    resultado = sqlite3_prepare_v2(
+        db, sqlOrigem, -1, &stmt, NULL
+    );
+
+    if (resultado != SQLITE_OK) {
+        goto erroTransferencia;
+    }
+
+    sqlite3_bind_int(stmt, 1, idUsuario);
+
+    resultado = sqlite3_step(stmt);
+
+    if (resultado != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        goto erroTransferencia;
+    }
+
+    snprintf(nomeOrigem, sizeof(nomeOrigem), "%s",
+             (const char *)sqlite3_column_text(stmt, 0));
+
+    sqlite3_finalize(stmt);
+
+    // 7. Retira o valor da conta de origem
+    const char *sqlDebito =
+        "UPDATE usuarios "
+        "SET saldo = saldo - ? "
+        "WHERE id = ? AND saldo >= ?;";
+
+    resultado = sqlite3_prepare_v2(
+        db, sqlDebito, -1, &stmt, NULL
+    );
+
+    if (resultado != SQLITE_OK) {
+        goto erroTransferencia;
+    }
+
+    sqlite3_bind_double(stmt, 1, valor);
+    sqlite3_bind_int(stmt, 2, idUsuario);
+    sqlite3_bind_double(stmt, 3, valor);
+
+    resultado = sqlite3_step(stmt);
+
+    sqlite3_finalize(stmt);
+
+    if (resultado != SQLITE_DONE) {
+        goto erroTransferencia;
+    }
+
+    // Verifica se o saldo foi realmente descontado
+    if (sqlite3_changes(db) != 1) {
+        printf("\n\t\t\t\t\t\tSaldo insuficiente para realizar a transferencia!\n");
+
+        sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+        return;
+    }
+
+    // 8. Adiciona o valor na conta de destino
+    const char *sqlCredito =
+        "UPDATE usuarios "
+        "SET saldo = saldo + ? "
+        "WHERE id = ?;";
+
+    resultado = sqlite3_prepare_v2(
+        db, sqlCredito, -1, &stmt, NULL
+    );
+
+    if (resultado != SQLITE_OK) {
+        goto erroTransferencia;
+    }
+
+    sqlite3_bind_double(stmt, 1, valor);
+    sqlite3_bind_int(stmt, 2, idDestino);
+
+    resultado = sqlite3_step(stmt);
+
+    sqlite3_finalize(stmt);
+
+    if (resultado != SQLITE_DONE || sqlite3_changes(db) != 1) {
+        goto erroTransferencia;
+    }
+
+    // 9. Monta as descricoes das movimentacoes
+    snprintf(descricaoSaida, sizeof(descricaoSaida),
+             "Transferencia enviada para %s", nomeDestino);
+
+    snprintf(descricaoEntrada, sizeof(descricaoEntrada),
+             "Transferencia recebida de %s", nomeOrigem);
+
+    // 10. Registra a saida no extrato de quem enviou
+    if (!registrarTransacao(db, idUsuario, descricaoSaida, -valor)) {
+        goto erroTransferencia;
+    }
+
+    // 11. Registra a entrada no extrato de quem recebeu
+    if (!registrarTransacao(db, idDestino, descricaoEntrada, valor)) {
+        goto erroTransferencia;
+    }
+
+    // 12. Confirma a transferencia
+    resultado = sqlite3_exec(
+        db,
+        "COMMIT;",
+        NULL,
+        NULL,
+        NULL
+    );
+
+    if (resultado != SQLITE_OK) {
+        goto erroTransferencia;
+    }
+
+    printf("\n\t\t\t\t\t\tTransferencia realizada com sucesso!\n");
+    printf("\n\t\t\t\t\t\tDestinatario: %s\n", nomeDestino);
+    printf("\n\t\t\t\t\t\tValor transferido: R$ %.2f\n", valor);
+
+    return;
+
+
+// Caso ocorra algum erro, desfaz todas as alteracoes
+erroTransferencia:
+
+    printf("\n\t\t\t\t\t\tErro ao realizar transferencia: %s\n",
+           sqlite3_errmsg(db));
+
+    if (stmt != NULL) {
+        sqlite3_finalize(stmt);
+    }
+
+    sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+}
+
+
 
 // ==========================================
 // MENU PRINCIPAL
@@ -1001,7 +1323,7 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
 
         printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
-        printf("\n=================================================== MENU PRINCIPAL ===================================================\n");
+        printf("\n=================================================== MENU PRINCIPAL ===================================================\n\n");
 
         printf("\t\t\t\t\t\t1 - Realizar Pagamento\n\n");
         printf("\t\t\t\t\t\t2 - Consultar Extrato\n\n");
@@ -1030,17 +1352,15 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
 
                 if (!realizarPagamento(descricao, sizeof(descricao)))
                 {
-                    lerTexto("\nPressione ENTER para voltar ao menu...",
-                            pausa, sizeof(pausa));
+                    lerTexto("\n\t\t\t\t\t\tPressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                     break;
                 }
 
-                if (!lerValorPositivo("\nDigite o valor da conta: R$ ", &valor))
+                if (!lerValorPositivo("\n\t\t\t\t\t\tDigite o valor da conta: R$ ", &valor))
                 {
-                    printf("\nValor invalido!\n");
+                    printf("\n\t\t\t\t\t\tValor invalido!\n");
 
-                    lerTexto("\nPressione ENTER para voltar ao menu...",
-                            pausa, sizeof(pausa));
+                    lerTexto("\n\t\t\t\t\t\tPressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                     break;
                 }
 
@@ -1048,17 +1368,15 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
 
                 if (valorFinal < 0 || !isfinite(valorFinal))
                 {
-                    printf("\nNao foi possivel calcular o pagamento.\n");
+                    printf("\n\t\t\t\t\t\tNao foi possivel calcular o pagamento.\n");
 
-                    lerTexto("\nPressione ENTER para voltar ao menu...",
-                            pausa, sizeof(pausa));
+                    lerTexto("\n\t\t\t\t\t\tPressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                     break;
                 }
 
                 descontarSaldo(db, idUsuario, valorFinal, descricao);
 
-                lerTexto("\nPressione ENTER para voltar ao menu...",
-                        pausa, sizeof(pausa));
+                lerTexto("\n\t\t\t\t\t\tPressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
 
                 break;
             }
@@ -1071,8 +1389,10 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
             }
 
             case 3:
-                printf("Funcionalidade de transferencia em desenvolvimento.\n");
+            {
+                transferirValores(db, idUsuario);
                 break;
+            }
 
             case 4:
             {
@@ -1082,6 +1402,7 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
             }
 
             case 0:
+                printf("\t\t\t\t\t\t");
                 printf("\t\t\t\t\t\t\nEncerrando sessao...\n");
                 break;
 
@@ -1108,14 +1429,14 @@ int main(void)
     if (resultado != SQLITE_OK)
     {
 
-        printf("Erro ao abrir banco de dados: %s\n",
+        printf("\n\t\t\t\t\t\tErro ao abrir banco de dados: %s\n",
                sqlite3_errmsg(db));
 
         sqlite3_close(db);
         return 1;
     }
 
-    printf("Conexao com SQLite realizada com sucesso!\n");
+    printf("\n\t\t\t\t\t\tConexao com SQLite realizada com sucesso!\n");
 
     // Cria a tabela de usuarios
     const char *sqlTabela =
@@ -1133,7 +1454,7 @@ int main(void)
     if (resultado != SQLITE_OK)
     {
 
-        printf("Erro ao criar tabela: %s\n", erro);
+        printf("\n\t\t\t\t\t\tErro ao criar tabela: %s\n", erro);
 
         sqlite3_free(erro);
         sqlite3_close(db);
@@ -1141,7 +1462,7 @@ int main(void)
         return 1;
     }
 
-    printf("Tabela usuarios pronta!\n");
+    printf("\n\t\t\t\t\t\tTabela usuarios pronta!\n");
 
     const char *sqlTransacoes =
         "CREATE TABLE IF NOT EXISTS transacoes ("
@@ -1161,7 +1482,7 @@ int main(void)
     if (resultado != SQLITE_OK)
     {
 
-        printf("Erro ao criar tabela de transacoes: %s\n", erro);
+        printf("\n\t\t\t\t\t\tErro ao criar tabela de transacoes: %s\n", erro);
 
         sqlite3_free(erro);
         sqlite3_close(db);
@@ -1179,7 +1500,9 @@ int main(void)
 
         printf("\n====================================================== C-NOPOLY ======================================================\n");
 
-        printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n\n");
+        printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+        printf("\n======================================================= INICIO =======================================================\n\n");
 
         printf("\t\t\t\t\t\t1 - Cadastrar usuario\n\n");
         printf("\t\t\t\t\t\t2 - Fazer login\n\n");
@@ -1189,7 +1512,7 @@ int main(void)
 
         if (!lerOpcao("Escolha uma opcao: ", &opcao))
         {
-            printf("Entrada invalida.\n");
+            printf("\n\t\t\t\t\t\tEntrada invalida.\n");
             opcao = -1;
             continue;
         }
