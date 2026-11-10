@@ -4,6 +4,7 @@
 
 #include "usuario.h"
 #include "utilidade.h"
+#include "sqlite3.h"
 
 // ==========================================
 // FUNCAO DE CADASTRO
@@ -208,7 +209,15 @@ void deletarUsuario(sqlite3 *db) {
     char cpf[15];
     char confirmacao;
 
+    system("cls");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
     printf("\n====================================================== C-NOPOLY ======================================================\n");
+
+    printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
+
+    printf("\n=================================================== DELETAR USUARIO ==================================================\n");
 
     printf("\n\t\t\t\t\tDigite o CPF do usuario que deseja excluir: ");
     scanf("%14s", cpf);
@@ -220,6 +229,8 @@ void deletarUsuario(sqlite3 *db) {
 
     if (sqlite3_prepare_v2(db, sqlBusca, -1, &stmt, NULL) != SQLITE_OK) {
         printf("\n\t\t\t\t\tErro ao preparar busca: %s\n", sqlite3_errmsg(db));
+        char pausa[10];
+        lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
         return;
     }
 
@@ -233,49 +244,64 @@ void deletarUsuario(sqlite3 *db) {
 
         snprintf(usuario.cpf, sizeof(usuario.cpf), "%s", (const char *)sqlite3_column_text(stmt, 1));
 
-        usuario.saldo = sqlite3_column_double(stmt, 3);
+        usuario.saldo = sqlite3_column_double(stmt, 2);
 
         sqlite3_finalize(stmt);
 
         // Verificar transacoes vinculadas ao usuario
 
         const char *sqlVerificar =
-            "SELECT COUNT(*) FROM transacoes WHERE usuario_id = "
-            "(SELECT id FROM usuarios WHERE cpf = ?);";
+            "SELECT COUNT(*) "
+            "FROM transacoes t "
+            "INNER JOIN usuarios u ON t.usuario_id = u.id "
+            "WHERE u.cpf = ?;";
 
         if (sqlite3_prepare_v2(db, sqlVerificar, -1, &stmt, NULL) != SQLITE_OK)
         {
             printf("\nErro ao verificar transacoes: %s\n", sqlite3_errmsg(db));
+
+            char pausa[10];
+            lerTexto("\n\t\t\t\t\tPressione ENTER para continuar...",pausa, sizeof(pausa));
             return;
         }
 
         sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_TRANSIENT);
 
-        if (sqlite3_step(stmt) == SQLITE_ROW)
+        int resultado = sqlite3_step(stmt);
+
+        if (resultado == SQLITE_ROW)
         {
             int quantidade = sqlite3_column_int(stmt, 0);
 
             sqlite3_finalize(stmt);
 
+            printf("\n\t\t\t\t\tTransacoes encontradas: %d\n", quantidade);
+
             if (quantidade > 0)
             {
-                
-                char pausa[10];
-                lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
-
-                printf("\n\t\t\t\t\tEste usuario possui transacoes registradas!");
-                printf("\n\t\t\t\t\tA exclusao nao pode ser realizada.");
+                printf("\n\t\t\t\t\tEste usuario possui transacoes registradas!\n");
+                printf("\n\t\t\t\t\tA exclusao nao pode ser realizada.\n");
                 printf("\n\t\t\t\t\tO historico financeiro sera preservado.\n");
+
+                char pausa[10];
+
+                lerTexto("\n\t\t\t\t\tPressione ENTER para continuar...",
+                        pausa, sizeof(pausa));
 
                 return;
             }
-
-
         }
         else
         {
-            printf("\nErro ao consultar transacoes.\n");
+            printf("\nErro ao consultar transacoes: %s\n", sqlite3_errmsg(db));
+
             sqlite3_finalize(stmt);
+
+            char pausa[10];
+
+            lerTexto("\n\t\t\t\t\tPressione ENTER para continuar...",
+                    pausa, sizeof(pausa));
+
             return;
         }
 
@@ -291,6 +317,8 @@ void deletarUsuario(sqlite3 *db) {
 
         if (confirmacao != 'S' && confirmacao != 's') {
             printf("\n\t\t\t\t\tOperacao cancelada!\n");
+            char pausa[10];
+            lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
             return;
         }
 
@@ -300,6 +328,8 @@ void deletarUsuario(sqlite3 *db) {
 
         if (sqlite3_prepare_v2(db, sqlDelete, -1, &stmt, NULL) != SQLITE_OK) {
             printf("\n\t\t\t\t\tErro ao preparar exclusao: %s\n", sqlite3_errmsg(db));
+            char pausa[10];
+            lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
             return;
         }
 
@@ -325,4 +355,9 @@ void deletarUsuario(sqlite3 *db) {
 
         printf("\n\t\t\t\t\tUsuario nao encontrado!\n");
     }
+
+    char pausa[10];
+
+    lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
+
 }
