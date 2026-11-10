@@ -11,4 +11,6 @@ int lerValorPositivo(const char *mensagem, double *valor);
 
 void mudarCorTerminal(void);
 
+void pausar(void);
+
 #endif

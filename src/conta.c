@@ -212,10 +212,8 @@ void consultarDados(sqlite3 *db, int idUsuario)
         return;
     }
 
-    char pausa[10];
-
-    lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
-
+    pausar();
+    
     sqlite3_finalize(stmt);
 
     int opcao;
@@ -251,8 +249,7 @@ void consultarDados(sqlite3 *db, int idUsuario)
         break;
     }
 
-    lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
-
+    pausar();
 }
 
 // ==========================================

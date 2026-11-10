@@ -192,3 +192,18 @@ void mudarCorTerminal(void)
 {
     system("color 06");
 }
+
+// ==========================================
+// FUNCAO PAUSA
+// ==========================================
+
+void pausar(void)
+{
+    int c;
+
+    printf("\n\t\t\t\t\t\tPressione ENTER para continuar...");
+
+    while ((c = getchar()) != '\n' && c != EOF);
+
+    getchar();
+}

@@ -68,8 +68,7 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
 
     sqlite3_finalize(stmt);
 
-    char pausa[10];
-    lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+    pausar();
 }
 
 // ==========================================

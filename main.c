@@ -53,12 +53,11 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
             {
                 double valor;
                 double valorFinal;
-                char pausa[10];
                 char descricao[100];
 
                 if (!realizarPagamento(descricao, sizeof(descricao)))
                 {
-                    lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                    pausar();
                     break;
                 }
 
@@ -66,7 +65,8 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
                 {
                     printf("\n\t\t\t\t\t\tValor invalido!\n");
 
-                    lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                    pausar();
+
                     break;
                 }
 
@@ -76,14 +76,13 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
                 {
                     printf("\n\t\t\t\t\t\tNao foi possivel calcular o pagamento.\n");
 
-                    lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                    pausar();
                     break;
                 }
 
                 descontarSaldo(db, idUsuario, valorFinal, descricao);
 
-                lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
-
+                pausar();
                 break;
             }
 
