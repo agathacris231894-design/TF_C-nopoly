@@ -183,3 +183,12 @@ int lerOpcao(const char *mensagem, int *opcao)
 
     return 1;
 }
+
+// ==========================================
+// FUNÇÃO PARA ALTERAR A COR DO TERMINAL
+// ==========================================
+
+void mudarCorTerminal(void)
+{
+    system("color 06");
+}

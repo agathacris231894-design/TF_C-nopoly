@@ -16,16 +16,18 @@ void alterarSenha(sqlite3 *db, int idUsuario)
     char novaSenha[100];
     char confirmarSenha[100];
 
+    system("cls");
+
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
     printf("\n====================================================== C-NOPOLY ======================================================\n");
 
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
-    printf("\n==================================================== ALTERAR SENHA ===================================================\n\n");
+    printf("\n==================================================== ALTERAR SENHA ===================================================\n");
 
 
-    lerTexto("\n                                                  Digite sua senha atual: ", senhaAtual, sizeof(senhaAtual));
+    lerTexto("\n                                                Digite sua senha atual: ", senhaAtual, sizeof(senhaAtual));
 
     // Verifica se a senha atual esta correta
     const char *sql = "SELECT senha FROM usuarios WHERE id = ?;";
@@ -68,7 +70,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
     sqlite3_finalize(stmt);
 
     // Solicita a nova senha
-    lerTexto("\n                                                  Digite sua nova senha: ", novaSenha, sizeof(novaSenha));
+    lerTexto("\n                                                Digite sua nova senha: ", novaSenha, sizeof(novaSenha));
 
     if (strlen(novaSenha) == 0)
     {
@@ -76,7 +78,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
         return;
     }
 
-    lerTexto("\n                                                  Confirme sua nova senha: ", confirmarSenha, sizeof(confirmarSenha));
+    lerTexto("\n                                                Confirme sua nova senha: ", confirmarSenha, sizeof(confirmarSenha));
 
     if (strcmp(novaSenha, confirmarSenha) != 0)
     {
@@ -188,13 +190,15 @@ void consultarDados(sqlite3 *db, int idUsuario)
         const unsigned char *cpf = sqlite3_column_text(stmt, 1);
         double saldo = sqlite3_column_double(stmt, 2);
 
+    system("cls");
+
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
     printf("\n====================================================== C-NOPOLY ======================================================\n");
 
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
-    printf("\n==================================================== DADOS DA CONTA ==================================================\n\n");
+    printf("\n==================================================== DADOS DA CONTA ==================================================\n");
 
 
         printf("\n\t\t\t\t\t\tNome: %s\n", nome);
@@ -208,17 +212,21 @@ void consultarDados(sqlite3 *db, int idUsuario)
         return;
     }
 
+    char pausa[10];
+
+    lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
+
     sqlite3_finalize(stmt);
 
     int opcao;
 
-    printf("\n======================================================= OPCOES =======================================================\n\n");
+    printf("\n======================================================= OPCOES =======================================================\n");
 
     printf("\n\t\t\t\t\t\t1 - Adicionar dinheiro a conta\n");
     printf("\n\t\t\t\t\t\t2 - Alterar senha de login\n");
     printf("\n\t\t\t\t\t\t0 - Voltar ao menu principal\n");
 
-    if (!lerOpcao("\n                                                  Escolha uma opcao: ", &opcao))
+    if (!lerOpcao("\n                                                Escolha uma opcao: ", &opcao))
     {
         printf("\n\t\t\t\t\t\tOpcao invalida!\n");
         return;
@@ -243,9 +251,7 @@ void consultarDados(sqlite3 *db, int idUsuario)
         break;
     }
 
-    char pausa[10];
-
-    lerTexto("\n                                                  Pressione ENTER para continuar...", pausa, sizeof(pausa));
+    lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
 
 }
 
@@ -257,16 +263,18 @@ void adicionarDinheiro(sqlite3 *db, int idUsuario)
 {
     double valor;
 
+    system("cls");
+
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
     printf("\n====================================================== C-NOPOLY ======================================================\n");
 
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
-    printf("\n===================================================== ADICIONAR $ ====================================================\n\n");
+    printf("\n===================================================== ADICIONAR $ ====================================================\n");
 
 
-    if (!lerValorPositivo("Digite o valor que deseja adicionar: R$ ", &valor))
+    if (!lerValorPositivo("\n                                                Digite o valor que deseja adicionar: R$ ", &valor))
     {
         printf("\n\t\t\t\t\t\tValor invalido!\n");
         return;

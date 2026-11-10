@@ -14,6 +14,7 @@
 
 int realizarPagamento(char *descricao, int tamanho)
 {
+    system("cls");
 
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
@@ -23,7 +24,7 @@ int realizarPagamento(char *descricao, int tamanho)
 
     printf("\n================================================== REALIZAR PAGAMENTO ================================================\n");
 
-    lerTexto("\n                                                  Qual conta deseja pagar? ", descricao, tamanho);
+    lerTexto("\n                                                Qual conta deseja pagar? ", descricao, tamanho);
 
     if (strlen(descricao) == 0)
     {
@@ -47,6 +48,8 @@ double escolherFormaPagamento(double valor)
     double valorFinal;
     char entrada[20];
 
+    system("cls");
+
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
     printf("\n====================================================== C-NOPOLY ======================================================\n");
@@ -60,7 +63,7 @@ double escolherFormaPagamento(double valor)
     printf("\n\t\t\t\t\t\t2 - Cartao de debito (+5%%)\n");
     printf("\n\t\t\t\t\t\t3 - PIX (sem acrescimo)\n");
 
-    lerTexto("\n                                                  Escolha uma opcao: ", entrada, sizeof(entrada));
+    lerTexto("\n                                                Escolha uma opcao: ", entrada, sizeof(entrada));
 
     if (sscanf(entrada, "%d", &opcao) != 1)
     {

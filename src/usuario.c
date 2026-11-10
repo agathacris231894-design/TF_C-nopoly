@@ -24,7 +24,7 @@ void cadastrarUsuario(sqlite3 *db)
 
     usuario.saldo = 0.0;
     
-    lerTexto("\n                                                  Digite seu nome completo: ", usuario.nome, sizeof(usuario.nome));
+    lerTexto("\n                                                Digite seu nome completo: ", usuario.nome, sizeof(usuario.nome));
 
     if (strlen(usuario.nome) == 0)
     {
@@ -32,7 +32,7 @@ void cadastrarUsuario(sqlite3 *db)
         return;
     }
 
-    lerTexto("\n                                                  Digite seu CPF (somente numeros): ", usuario.cpf, sizeof(usuario.cpf));
+    lerTexto("\n                                                Digite seu CPF (somente numeros): ", usuario.cpf, sizeof(usuario.cpf));
 
     if (!validarCPF(usuario.cpf))
     {
@@ -40,7 +40,7 @@ void cadastrarUsuario(sqlite3 *db)
         return;
     }
 
-    lerTexto("\n                                                  Crie uma senha: ", usuario.senha, sizeof(usuario.senha));
+    lerTexto("\n                                                Crie uma senha: ", usuario.senha, sizeof(usuario.senha));
 
     if (strlen(usuario.senha) == 0)
     {
@@ -117,6 +117,8 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
     char cpf[12];
     char senha[100];
 
+    system("cls");
+
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
     printf("\n====================================================== C-NOPOLY ======================================================\n");
@@ -125,7 +127,7 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
 
     printf("\n======================================================== LOGIN ========================================================\n");
 
-    lerTexto("\n                                                  CPF: ", cpf, sizeof(cpf));
+    lerTexto("\n                                                CPF: ", cpf, sizeof(cpf));
 
     if (!validarCPF(cpf))
     {
@@ -133,7 +135,7 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
         return 0;
     }
 
-    lerTexto("\n                                                  Senha: ", senha, sizeof(senha));
+    lerTexto("\n                                                Senha: ", senha, sizeof(senha));
 
     const char *sql =
         "SELECT id, nome_completo, saldo "
@@ -213,7 +215,7 @@ void deletarUsuario(sqlite3 *db) {
 
     // 1. Buscar usuario pelo CPF
     const char *sqlBusca =
-        "SELECT nome_completo, cpf, senha, saldo "
+        "SELECT nome_completo, cpf, saldo "
         "FROM usuarios WHERE cpf = ?;";
 
     if (sqlite3_prepare_v2(db, sqlBusca, -1, &stmt, NULL) != SQLITE_OK) {
@@ -231,11 +233,51 @@ void deletarUsuario(sqlite3 *db) {
 
         snprintf(usuario.cpf, sizeof(usuario.cpf), "%s", (const char *)sqlite3_column_text(stmt, 1));
 
-        snprintf(usuario.senha, sizeof(usuario.senha), "%s", (const char *)sqlite3_column_text(stmt, 2));
-
         usuario.saldo = sqlite3_column_double(stmt, 3);
 
         sqlite3_finalize(stmt);
+
+        // Verificar transacoes vinculadas ao usuario
+
+        const char *sqlVerificar =
+            "SELECT COUNT(*) FROM transacoes WHERE usuario_id = "
+            "(SELECT id FROM usuarios WHERE cpf = ?);";
+
+        if (sqlite3_prepare_v2(db, sqlVerificar, -1, &stmt, NULL) != SQLITE_OK)
+        {
+            printf("\nErro ao verificar transacoes: %s\n", sqlite3_errmsg(db));
+            return;
+        }
+
+        sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_TRANSIENT);
+
+        if (sqlite3_step(stmt) == SQLITE_ROW)
+        {
+            int quantidade = sqlite3_column_int(stmt, 0);
+
+            sqlite3_finalize(stmt);
+
+            if (quantidade > 0)
+            {
+                
+                char pausa[10];
+                lerTexto("\n                                                Pressione ENTER para continuar...", pausa, sizeof(pausa));
+
+                printf("\n\t\t\t\t\tEste usuario possui transacoes registradas!");
+                printf("\n\t\t\t\t\tA exclusao nao pode ser realizada.");
+                printf("\n\t\t\t\t\tO historico financeiro sera preservado.\n");
+
+                return;
+            }
+
+
+        }
+        else
+        {
+            printf("\nErro ao consultar transacoes.\n");
+            sqlite3_finalize(stmt);
+            return;
+        }
 
         // 4. Exibir os dados encontrados
         printf("\n\t\t\t\t\tUsuario encontrado!");

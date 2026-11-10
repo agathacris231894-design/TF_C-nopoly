@@ -22,6 +22,8 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
     do
     {
 
+        system("cls");
+
         printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
         printf("\n====================================================== C-NOPOLY ======================================================\n");
@@ -34,13 +36,12 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
         printf("\t\t\t\t\t\t2 - Consultar Extrato\n\n");
         printf("\t\t\t\t\t\t3 - Transferir Valores\n\n");
         printf("\t\t\t\t\t\t4 - Consultar Dados\n\n");
-        printf("\t\t\t\t\t\t0 - Sair\n\n");
+        printf("\t\t\t\t\t\t5 - Deletar Usuario\n\n");
+        printf("\t\t\t\t\t\t0 - Sair\n");
 
-        printf("\t\t\t\t\t\t");
-
-        if (!lerOpcao("Escolha uma opcao: ", &opcao))
+        if (!lerOpcao("\n                                                Escolha uma opcao: ", &opcao))
         {
-            printf("\t\t\t\t\t\tEntrada invalida.\n");
+            printf("\t\t\t\t\t\t\nEntrada invalida.\n");
             opcao = -1;
             continue;
         }
@@ -57,15 +58,15 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
 
                 if (!realizarPagamento(descricao, sizeof(descricao)))
                 {
-                    lerTexto("\n                                         Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                    lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                     break;
                 }
 
-                if (!lerValorPositivo("\n\t\t\t\t\t\tDigite o valor da conta: R$ ", &valor))
+                if (!lerValorPositivo("\n                                                Digite o valor da conta: R$ ", &valor))
                 {
                     printf("\n\t\t\t\t\t\tValor invalido!\n");
 
-                    lerTexto("\n                                         Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                    lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                     break;
                 }
 
@@ -75,13 +76,13 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
                 {
                     printf("\n\t\t\t\t\t\tNao foi possivel calcular o pagamento.\n");
 
-                    lerTexto("\n                                         Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                    lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
                     break;
                 }
 
                 descontarSaldo(db, idUsuario, valorFinal, descricao);
 
-                lerTexto("\n                                             Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+                lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
 
                 break;
             }
@@ -106,6 +107,12 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
                 break;
             }
 
+            case 5:
+            {
+                deletarUsuario(db);
+                break;
+            }
+
             case 0:
                 printf("\t\t\t\t\t\t");
                 printf("\t\t\t\t\t\t\nEncerrando sessao...\n");
@@ -124,6 +131,8 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
 
 int main(void)
 {
+
+    mudarCorTerminal();
 
     sqlite3 *db = NULL;
     char *erro = NULL;
@@ -200,6 +209,7 @@ int main(void)
 
     do
     {
+        system("cls");
 
         printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
@@ -211,11 +221,9 @@ int main(void)
 
         printf("\t\t\t\t\t\t1 - Cadastrar usuario\n\n");
         printf("\t\t\t\t\t\t2 - Fazer login\n\n");
-        printf("\t\t\t\t\t\t0 - Sair do programa\n\n");
+        printf("\t\t\t\t\t\t0 - Sair do programa\n");
 
-        printf("\t\t\t\t\t\t");
-
-        if (!lerOpcao("\n                                             Escolha uma opcao: ", &opcao))
+        if (!lerOpcao("\n                                                Escolha uma opcao: ", &opcao))
         {
             printf("\n\t\t\t\t\t\tEntrada invalida.\n");
             opcao = -1;

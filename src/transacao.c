@@ -28,6 +28,8 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
 
     sqlite3_bind_int(stmt, 1, idUsuario);
 
+    system("cls");
+
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
     printf("\n====================================================== C-NOPOLY ======================================================\n");
@@ -67,7 +69,7 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
     sqlite3_finalize(stmt);
 
     char pausa[10];
-    lerTexto("\n                                                  Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
+    lerTexto("\n                                                Pressione ENTER para voltar ao menu...", pausa, sizeof(pausa));
 }
 
 // ==========================================
@@ -124,6 +126,8 @@ void transferirValores(sqlite3 *db, int idUsuario)
         return;
     }
 
+    system("cls");
+
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
 
     printf("\n====================================================== C-NOPOLY ======================================================\n");
@@ -134,7 +138,7 @@ void transferirValores(sqlite3 *db, int idUsuario)
 
 
     // 1. Solicita o CPF do destinatario
-    lerTexto("\n                                                  Digite o CPF do destinatario: ", cpfDestino, sizeof(cpfDestino));
+    lerTexto("\n                                                Digite o CPF do destinatario: ", cpfDestino, sizeof(cpfDestino));
 
     if (strlen(cpfDestino) == 0) {
         printf("\n\t\t\t\t\t\tCPF nao informado!\n");
@@ -142,7 +146,7 @@ void transferirValores(sqlite3 *db, int idUsuario)
     }
 
     // 2. Solicita o valor da transferencia
-    if (!lerValorPositivo("\nDigite o valor da transferencia: ", &valor)) {
+    if (!lerValorPositivo("\n                                                Digite o valor da transferencia: ", &valor)) {
         printf("\n\t\t\t\t\t\tValor invalido!\n");
         return;
     }
