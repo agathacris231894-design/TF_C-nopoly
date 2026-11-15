@@ -11,11 +11,19 @@
 // ==========================================
 
 
-void lerTexto(const char *mensagem, char *texto, int tamanho)
+void lerTexto(const char *mensagem, char *texto, size_t  tamanho)
 {
-    printf("%s", mensagem);
+    if (texto == NULL || tamanho == 0)
+    {
+        return;
+    }
 
-    if (fgets(texto, tamanho, stdin) == NULL)
+    if (mensagem != NULL)
+    {
+        printf("%s", mensagem);
+    }
+
+    if (fgets(texto, (int)tamanho, stdin) == NULL)
     {
         texto[0] = '\0';
         return;
@@ -45,7 +53,14 @@ void lerTexto(const char *mensagem, char *texto, int tamanho)
 int validarCPF(const char *cpf)
 {
     int soma = 0;
+
     int resto;
+
+
+    if (cpf == NULL)
+    {
+        return 0;
+    }
 
     // Verifica se possui exatamente 11 digitos.
     if (strlen(cpf) != 11)
@@ -129,9 +144,16 @@ int lerValorPositivo(const char *mensagem, double *valor)
     char entrada[50];
     char *fim;
 
+    if (valor == NULL)
+    {
+        return 0;
+    }
+
     lerTexto(mensagem, entrada, sizeof(entrada));
 
-    *valor = strtod(entrada, &fim);
+    errno = 0;
+
+    double valorConvertido = strtod(entrada, &fim);
 
     // Ignora espacos no final.
     while (isspace((unsigned char)*fim))
@@ -140,13 +162,12 @@ int lerValorPositivo(const char *mensagem, double *valor)
     }
 
     // Verifica se a conversao foi valida.
-    if (fim == entrada ||
-        *fim != '\0' ||
-        !isfinite(*valor) ||
-        *valor <= 0)
+    if (fim == entrada || *fim != '\0' || errno == ERANGE || !isfinite(valorConvertido) || valorConvertido <= 0)
     {
         return 0;
     }
+
+    *valor = valorConvertido;
 
     return 1;
 }
@@ -160,7 +181,14 @@ int lerOpcao(const char *mensagem, int *opcao)
     char entrada[20];
     char *fim;
 
+    if (opcao == NULL)
+    {
+        return 0;
+    }
+
     lerTexto(mensagem, entrada, sizeof(entrada));
+
+    errno = 0;
 
     long valor = strtol(entrada, &fim, 10);
 
@@ -169,12 +197,7 @@ int lerOpcao(const char *mensagem, int *opcao)
         fim++;
     }
 
-    if (fim == entrada || *fim != '\0')
-    {
-        return 0;
-    }
-
-    if (valor < -2147483647L - 1 || valor > 2147483647L)
+    if (fim == entrada || *fim != '\0' || errno == ERANGE || valor < INT_MIN || valor > INT_MAX)
     {
         return 0;
     }
@@ -203,7 +226,7 @@ void pausar(void)
 
     printf("\n\t\t\t\t\t\tPressione ENTER para continuar...");
 
-    while ((c = getchar()) != '\n' && c != EOF);
-
-    getchar();
+    while ((c = getchar()) != '\n' && c != EOF)
+    {
+    }
 }

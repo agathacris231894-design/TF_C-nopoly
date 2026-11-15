@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "transacao.h"
 #include "utilidade.h"
@@ -12,6 +13,13 @@
 
 void consultarExtrato(sqlite3 *db, int idUsuario)
 {
+
+    if (db == NULL || idUsuario <= 0)
+    {
+        printf("\n\t\t\t\t\t\tErro: dados do usuario invalidos.\n");
+        return;
+    }
+
     const char *sql =
         "SELECT descricao, valor, data_hora "
         "FROM transacoes "
@@ -26,7 +34,14 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
         return;
     }
 
-    sqlite3_bind_int(stmt, 1, idUsuario);
+    int resultado = sqlite3_bind_int(stmt, 1, idUsuario);
+
+    if (resultado != SQLITE_OK)
+    {
+        printf("\n\t\t\t\t\t\tErro ao associar usuario ao extrato: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return;
+    }
 
     system("cls");
 
@@ -38,8 +53,6 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
 
     printf("\n====================================================== EXTRATO =======================================================\n\n");
 
-
-    int resultado;
     int quantidade = 0;
 
     while ((resultado = sqlite3_step(stmt)) == SQLITE_ROW)
@@ -48,9 +61,9 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
         double valor = sqlite3_column_double(stmt, 1);
         const unsigned char *data = sqlite3_column_text(stmt, 2);
 
-        printf("\n\t\t\t\t\t\tDescricao: %s\n", descricao);
+        printf("\n\t\t\t\t\t\tDescricao: %s\n", descricao ? (const char *)descricao : "");
         printf("\n\t\t\t\t\t\tValor: R$ %.2f\n", valor);
-        printf("\n\t\t\t\t\t\tData: %s\n", data);
+        printf("\n\t\t\t\t\t\tData: %s\n", data ? (const char *)data : "");
         
         printf("\n======================================================================================================================\n");
 
@@ -77,7 +90,14 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
 
 int registrarTransacao(sqlite3 *db, int idUsuario, const char *descricao, double valor)
 {
-    sqlite3_stmt *stmt;
+    
+    if (db == NULL || idUsuario <= 0 || descricao == NULL || descricao[0] == '\0' || !isfinite(valor))
+    {
+        return 0;
+    }
+
+    sqlite3_stmt *stmt = NULL;
+
     const char *sql =
         "INSERT INTO transacoes "
         "(usuario_id, descricao, valor, data_hora) "
@@ -89,9 +109,23 @@ int registrarTransacao(sqlite3 *db, int idUsuario, const char *descricao, double
         return 0;
     }
 
-    sqlite3_bind_int(stmt, 1, idUsuario);
-    sqlite3_bind_text(stmt, 2, descricao, -1, SQLITE_TRANSIENT);
-    sqlite3_bind_double(stmt, 3, valor);
+    resultado = sqlite3_bind_int(stmt, 1, idUsuario);
+
+    if (resultado == SQLITE_OK)
+    {
+        resultado = sqlite3_bind_text(stmt, 2, descricao, -1, SQLITE_TRANSIENT);
+    }
+
+    if (resultado == SQLITE_OK)
+    {
+        resultado = sqlite3_bind_double(stmt, 3, valor);
+    }
+
+    if (resultado != SQLITE_OK)
+    {
+        sqlite3_finalize(stmt);
+        return 0;
+    }
 
     resultado = sqlite3_step(stmt);
 
@@ -106,7 +140,7 @@ int registrarTransacao(sqlite3 *db, int idUsuario, const char *descricao, double
 
 void transferirValores(sqlite3 *db, int idUsuario)
 {
-    sqlite3_stmt *stmt;
+    sqlite3_stmt *stmt = NULL;
 
     char cpfDestino[20];
     char nomeDestino[100];
@@ -120,7 +154,8 @@ void transferirValores(sqlite3 *db, int idUsuario)
 
     double valor;
 
-    if (db == NULL) {
+    if (db == NULL || idUsuario <= 0) 
+    {
         printf("\n\t\t\t\t\t\tErro: banco de dados indisponivel.\n");
         return;
     }
@@ -150,6 +185,12 @@ void transferirValores(sqlite3 *db, int idUsuario)
         return;
     }
 
+    if (!isfinite(valor) || valor <= 0)
+    {
+        printf("\n\t\t\t\t\t\tValor invalido!\n");
+        return;
+    }
+
     // 3. Inicia uma transacao no SQLite
     resultado = sqlite3_exec(
         db,
@@ -160,47 +201,63 @@ void transferirValores(sqlite3 *db, int idUsuario)
     );
 
     if (resultado != SQLITE_OK) {
-        printf("\n\t\t\t\t\t\tErro ao iniciar transferencia: %s\n",
-               sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao iniciar transferencia: %s\n", sqlite3_errmsg(db));
         return;
     }
 
     // 4. Busca o destinatario pelo CPF
-    const char *sqlDestino =
-        "SELECT id, nome_completo FROM usuarios WHERE cpf = ?;";
+    const char *sqlDestino = "SELECT id, nome_completo FROM usuarios WHERE cpf = ?;";
 
-    resultado = sqlite3_prepare_v2(
-        db, sqlDestino, -1, &stmt, NULL
-    );
+    resultado = sqlite3_prepare_v2(db, sqlDestino, -1, &stmt, NULL);
 
-    if (resultado != SQLITE_OK) {
+    if (resultado != SQLITE_OK) 
+    {
         goto erroTransferencia;
     }
 
-    sqlite3_bind_text(stmt, 1, cpfDestino, -1, SQLITE_TRANSIENT);
+    resultado = sqlite3_bind_text(stmt, 1, cpfDestino, -1, SQLITE_TRANSIENT);
+
+    if (resultado != SQLITE_OK)
+    {
+        goto erroTransferencia;
+    }
 
     resultado = sqlite3_step(stmt);
 
     if (resultado != SQLITE_ROW) {
+
         sqlite3_finalize(stmt);
 
-        printf("\n\t\t\t\t\t\tDestinatario nao encontrado!\n");
+        stmt = NULL;
+
+        if (resultado == SQLITE_DONE)
+        {
+            printf("\n\t\t\t\t\t\tDestinatario nao encontrado!\n");
+        }
+        else
+        {
+            printf("\n\t\t\t\t\t\tErro ao buscar destinatario: %s\n", sqlite3_errmsg(db));
+        }
 
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+
         return;
     }
 
     idDestino = sqlite3_column_int(stmt, 0);
 
-    snprintf(nomeDestino, sizeof(nomeDestino), "%s",
-             (const char *)sqlite3_column_text(stmt, 1));
+    const unsigned char *nomeBancoDestino = sqlite3_column_text(stmt, 1);
+
+    snprintf(nomeDestino, sizeof(nomeDestino), "%s", (const char *)sqlite3_column_text(stmt, 1));
 
     sqlite3_finalize(stmt);
 
+    stmt = NULL;
+
     // 5. Impede transferir para a propria conta
     if (idDestino == idUsuario) {
-        printf("\n\t\t\t\t\t\tNao e possivel transferir para sua propria conta!\n");
 
+        printf("\n\t\t\t\t\t\tNao e possivel transferir para sua propria conta!\n");
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
         return;
     }
@@ -208,26 +265,34 @@ void transferirValores(sqlite3 *db, int idUsuario)
     // 6. Busca o nome de quem esta transferindo
     const char *sqlOrigem = "SELECT nome_completo FROM usuarios WHERE id = ?;";
 
-    resultado = sqlite3_prepare_v2(
-        db, sqlOrigem, -1, &stmt, NULL
-    );
+    resultado = sqlite3_prepare_v2(db, sqlOrigem, -1, &stmt, NULL);
 
-    if (resultado != SQLITE_OK) {
+    if (resultado != SQLITE_OK) 
+    {
         goto erroTransferencia;
     }
 
-    sqlite3_bind_int(stmt, 1, idUsuario);
+    resultado = sqlite3_bind_int(stmt, 1, idUsuario);
+
+    if (resultado != SQLITE_ROW) 
+    {
+        goto erroTransferencia;
+    }
 
     resultado = sqlite3_step(stmt);
 
-    if (resultado != SQLITE_ROW) {
-        sqlite3_finalize(stmt);
+    if (resultado != SQLITE_ROW)
+    {
         goto erroTransferencia;
     }
+
+    const unsigned char *nomeBancoOrigem = sqlite3_column_text(stmt, 0);
 
     snprintf(nomeOrigem, sizeof(nomeOrigem), "%s", (const char *)sqlite3_column_text(stmt, 0));
 
     sqlite3_finalize(stmt);
+
+    stmt = NULL;
 
     // 7. Retira o valor da conta de origem
     const char *sqlDebito =
@@ -235,28 +300,46 @@ void transferirValores(sqlite3 *db, int idUsuario)
         "SET saldo = saldo - ? "
         "WHERE id = ? AND saldo >= ?;";
 
-    resultado = sqlite3_prepare_v2(
-        db, sqlDebito, -1, &stmt, NULL
-    );
+    resultado = sqlite3_prepare_v2(db, sqlDebito, -1, &stmt, NULL);
 
-    if (resultado != SQLITE_OK) {
+    if (resultado != SQLITE_OK) 
+    {
         goto erroTransferencia;
     }
 
-    sqlite3_bind_double(stmt, 1, valor);
-    sqlite3_bind_int(stmt, 2, idUsuario);
-    sqlite3_bind_double(stmt, 3, valor);
+    resultado = sqlite3_bind_double(stmt, 1, valor);
+
+    if (resultado == SQLITE_OK)
+    {
+        resultado = sqlite3_bind_int(stmt, 2, idUsuario);
+    }
+
+    if (resultado == SQLITE_OK)
+    {
+        resultado = sqlite3_bind_double(stmt, 3, valor);
+    }
+
+    if (resultado != SQLITE_OK)
+    {
+        goto erroTransferencia;
+    }
 
     resultado = sqlite3_step(stmt);
 
+    int linhasAlteradas = sqlite3_changes(db);
+
     sqlite3_finalize(stmt);
 
-    if (resultado != SQLITE_DONE) {
+    stmt = NULL;
+
+    if (resultado != SQLITE_DONE) 
+    {
         goto erroTransferencia;
     }
 
     // Verifica se o saldo foi realmente descontado
-    if (sqlite3_changes(db) != 1) {
+    if (linhasAlteradas != 1)
+    {
         printf("\n\t\t\t\t\t\tSaldo insuficiente para realizar a transferencia!\n");
 
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
@@ -269,22 +352,35 @@ void transferirValores(sqlite3 *db, int idUsuario)
         "SET saldo = saldo + ? "
         "WHERE id = ?;";
 
-    resultado = sqlite3_prepare_v2(
-        db, sqlCredito, -1, &stmt, NULL
-    );
+    resultado = sqlite3_prepare_v2(db, sqlCredito, -1, &stmt, NULL);
 
-    if (resultado != SQLITE_OK) {
+    if (resultado != SQLITE_OK) 
+    {
         goto erroTransferencia;
     }
 
-    sqlite3_bind_double(stmt, 1, valor);
-    sqlite3_bind_int(stmt, 2, idDestino);
+    resultado = sqlite3_bind_double(stmt, 1, valor);
+
+    if (resultado == SQLITE_OK)
+    {
+        resultado = sqlite3_bind_int(stmt, 2, idDestino);
+    }
+
+    if (resultado != SQLITE_OK)
+    {
+        goto erroTransferencia;
+    }
 
     resultado = sqlite3_step(stmt);
 
+    linhasAlteradas = sqlite3_changes(db);
+
     sqlite3_finalize(stmt);
 
-    if (resultado != SQLITE_DONE || sqlite3_changes(db) != 1) {
+    stmt = NULL;
+
+    if (resultado != SQLITE_DONE || linhasAlteradas != 1) 
+    {
         goto erroTransferencia;
     }
 
@@ -294,12 +390,14 @@ void transferirValores(sqlite3 *db, int idUsuario)
     snprintf(descricaoEntrada, sizeof(descricaoEntrada), "Transferencia recebida de %s", nomeOrigem);
 
     // 10. Registra a saida no extrato de quem enviou
-    if (!registrarTransacao(db, idUsuario, descricaoSaida, -valor)) {
+    if (!registrarTransacao(db, idUsuario, descricaoSaida, -valor)) 
+    {
         goto erroTransferencia;
     }
 
     // 11. Registra a entrada no extrato de quem recebeu
-    if (!registrarTransacao(db, idDestino, descricaoEntrada, valor)) {
+    if (!registrarTransacao(db, idDestino, descricaoEntrada, valor)) 
+    {
         goto erroTransferencia;
     }
 
@@ -326,11 +424,12 @@ void transferirValores(sqlite3 *db, int idUsuario)
 // Caso ocorra algum erro, desfaz todas as alteracoes
 erroTransferencia:
 
-    printf("\n\t\t\t\t\t\tErro ao realizar transferencia: %s\n",
-           sqlite3_errmsg(db));
+    printf("\n\t\t\t\t\t\tErro ao realizar transferencia: %s\n", sqlite3_errmsg(db));
 
-    if (stmt != NULL) {
+    if (stmt != NULL) 
+    {
         sqlite3_finalize(stmt);
+        stmt = NULL;
     }
 
     sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);

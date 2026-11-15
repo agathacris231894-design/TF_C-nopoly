@@ -1,7 +1,9 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-void lerTexto(const char *mensagem, char *texto, int tamanho);
+#include <stddef.h>
+
+void lerTexto(const char *mensagem, char *texto, size_t tamanho);
 
 int validarCPF(const char *cpf);
 

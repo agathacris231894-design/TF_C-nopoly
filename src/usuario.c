@@ -91,6 +91,9 @@ void cadastrarUsuario(sqlite3 *db)
         printf("\t\t\t\t\t\tErro ao associar dados: %s\n", sqlite3_errmsg(db));
 
         sqlite3_finalize(stmt);
+        
+        pausar();
+
         return;
     }
 
@@ -104,7 +107,7 @@ void cadastrarUsuario(sqlite3 *db)
         pausar();
 
     }
-    else if (resultado == SQLITE_CONSTRAINT)
+    else if ((resultado & 0xFF) == SQLITE_CONSTRAINT)
     {
 
         printf("\n\t\t\t\t\t\tEste CPF ja esta cadastrado!\n");
@@ -119,6 +122,7 @@ void cadastrarUsuario(sqlite3 *db)
 
     
     sqlite3_finalize(stmt);
+    pausar(); 
 }
 
 // ==========================================
@@ -146,6 +150,7 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
     if (!validarCPF(cpf))
     {
         printf("\n\t\t\t\t\t\tCPF invalido!\n");
+        pausar();
         return 0;
     }
 
@@ -161,9 +166,8 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
     {
 
-        printf("\t\t\t\t\t\t\nErro ao consultar banco: %s\n",
-               sqlite3_errmsg(db));
-
+        printf("\t\t\t\t\t\t\nErro ao consultar banco: %s\n",sqlite3_errmsg(db));
+        pausar();
         return 0;
     }
 
@@ -182,6 +186,7 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
     }
 
     resultado = sqlite3_step(stmt);
+    
     int autenticado = 0;
 
     if (resultado == SQLITE_ROW)
@@ -191,7 +196,8 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
         const unsigned char *nome = sqlite3_column_text(stmt, 1);
 
         printf("\n\t\t\t\t\t\tLogin realizado com sucesso!\n\n");
-        printf("\n\t\t\t\t\t\tBem-vindo(a), %s!\n\n", nome);
+
+        printf("\n\t\t\t\t\t\tBem-vindo(a), %s!\n\n", nome ? (const char *)nome : "");
 
         autenticado = 1;
     }
@@ -217,9 +223,10 @@ int fazerLogin(sqlite3 *db, int *idUsuario)
 void deletarUsuario(sqlite3 *db) {
 
     Usuario usuario;
-    sqlite3_stmt *stmt;
 
-    char cpf[15];
+    sqlite3_stmt *stmt = NULL;
+
+    char cpf[12];
     char confirmacao;
 
     system("cls");
@@ -232,8 +239,14 @@ void deletarUsuario(sqlite3 *db) {
 
     printf("\n=================================================== DELETAR USUARIO ==================================================\n");
 
-    printf("\n\t\t\t\t\tDigite o CPF do usuario que deseja excluir: ");
-    scanf("%14s", cpf);
+    lerTexto("\n                                                Digite o CPF do usuario que deseja excluir: ", cpf, sizeof(cpf));
+
+    if (!validarCPF(cpf))
+    {
+        printf("\n\t\t\t\t\tCPF invalido!\n");
+        pausar();
+        return;
+    }
 
     // 1. Buscar usuario pelo CPF
     const char *sqlBusca =
@@ -246,12 +259,29 @@ void deletarUsuario(sqlite3 *db) {
         return;
     }
 
-    sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_TRANSIENT);
+    int resultado = sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_TRANSIENT);
+
+    if (resultado != SQLITE_OK)
+    {
+        printf("\n\t\t\t\t\tErro ao associar CPF: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        pausar();
+        return;
+    }
 
     // 2. Verificar se o usuario existe
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
+    
+    resultado = sqlite3_step(stmt);
+
+
+    if (resultado == SQLITE_ROW) {
 
         // 3. Preencher a struct com os dados do banco
+
+        const unsigned char *nomeBanco = sqlite3_column_text(stmt, 0);
+
+        const unsigned char *cpfBanco = sqlite3_column_text(stmt, 1);
+        
         snprintf(usuario.nome, sizeof(usuario.nome), "%s", (const char *)sqlite3_column_text(stmt, 0));
 
         snprintf(usuario.cpf, sizeof(usuario.cpf), "%s", (const char *)sqlite3_column_text(stmt, 1));
@@ -259,6 +289,8 @@ void deletarUsuario(sqlite3 *db) {
         usuario.saldo = sqlite3_column_double(stmt, 2);
 
         sqlite3_finalize(stmt);
+
+        stmt = NULL;
 
         // Verificar transacoes vinculadas ao usuario
 
@@ -270,22 +302,30 @@ void deletarUsuario(sqlite3 *db) {
 
         if (sqlite3_prepare_v2(db, sqlVerificar, -1, &stmt, NULL) != SQLITE_OK)
         {
-            printf("\nErro ao verificar transacoes: %s\n", sqlite3_errmsg(db));
-
+            printf("\n\t\t\t\t\tErro ao verificar transacoes: %s\n", sqlite3_errmsg(db));
             pausar();
-
             return;
         }
 
-        sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_TRANSIENT);
+        resultado = sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_TRANSIENT);
 
-        int resultado = sqlite3_step(stmt);
+        if (resultado != SQLITE_OK)
+        {
+            printf("\n\t\t\t\t\tErro ao associar CPF: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            pausar();
+            return;
+        }
 
+        resultado = sqlite3_step(stmt);
+        
         if (resultado == SQLITE_ROW)
         {
             int quantidade = sqlite3_column_int(stmt, 0);
 
             sqlite3_finalize(stmt);
+
+            stmt = NULL;
 
             printf("\n\t\t\t\t\tTransacoes encontradas: %d\n", quantidade);
 
@@ -326,8 +366,7 @@ void deletarUsuario(sqlite3 *db) {
         }
 
         // 6. Excluir usuario do banco
-        const char *sqlDelete =
-            "DELETE FROM usuarios WHERE cpf = ?;";
+        const char *sqlDelete = "DELETE FROM usuarios WHERE cpf = ?;";
 
         if (sqlite3_prepare_v2(db, sqlDelete, -1, &stmt, NULL) != SQLITE_OK) {
             printf("\n\t\t\t\t\tErro ao preparar exclusao: %s\n", sqlite3_errmsg(db));
@@ -335,27 +374,50 @@ void deletarUsuario(sqlite3 *db) {
             return;
         }
 
-        sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_TRANSIENT);
+        resultado = sqlite3_bind_text(stmt, 1, cpf, -1, SQLITE_TRANSIENT);
 
-        if (sqlite3_step(stmt) == SQLITE_DONE) {
+        if (resultado != SQLITE_OK) {
 
-            if (sqlite3_changes(db) > 0) {
+            printf("\n\t\t\t\t\tErro ao associar CPF: %s\n", sqlite3_errmsg(db));
+            sqlite3_finalize(stmt);
+            pausar();
+            return;
+        }
+
+        resultado = sqlite3_step(stmt);
+
+        if (resultado == SQLITE_DONE)
+        {
+            if (sqlite3_changes(db) > 0)
+            {
                 printf("\n\t\t\t\t\tUsuario excluido com sucesso!\n");
-            } else {
+            }
+            else
+            {
                 printf("\n\t\t\t\t\tNenhum usuario foi excluido!\n");
             }
-
-        } else {
+        }
+        else
+        {
             printf("\n\t\t\t\t\tErro ao excluir usuario: %s\n", sqlite3_errmsg(db));
         }
 
         sqlite3_finalize(stmt);
 
-    } else {
+    } else if (resultado == SQLITE_DONE) {
 
         sqlite3_finalize(stmt);
 
         printf("\n\t\t\t\t\tUsuario nao encontrado!\n");
     }
+    
+    else
+    {
+        printf("\n\t\t\t\t\tErro ao consultar usuario: %s\n", sqlite3_errmsg(db));
+
+        sqlite3_finalize(stmt);
+    }
+
+    pausar();
 
 }

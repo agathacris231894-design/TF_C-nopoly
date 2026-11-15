@@ -60,7 +60,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
 
     const unsigned char *senhaBanco = sqlite3_column_text(stmt, 0);
 
-    if (strcmp(senhaAtual, (const char *)senhaBanco) != 0)
+    if (senhaBanco == NULL || strcmp(senhaAtual, (const char *)senhaBanco) != 0)
     {
         printf("\n\t\t\t\t\t\tSenha atual incorreta!\n");
         sqlite3_finalize(stmt);
@@ -93,8 +93,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
     }
 
     // Atualiza a senha no banco
-    const char *sqlAtualizar =
-        "UPDATE usuarios SET senha = ? WHERE id = ?;";
+    const char *sqlAtualizar = "UPDATE usuarios SET senha = ? WHERE id = ?;";
 
     stmt = NULL;
 
@@ -109,7 +108,11 @@ void alterarSenha(sqlite3 *db, int idUsuario)
 
     resultado = sqlite3_step(stmt);
 
-    if (resultado == SQLITE_DONE)
+    if (resultado == SQLITE_DONE && sqlite3_changes(db) > 0)
+    {
+        printf("\n\t\t\t\t\t\tSenha alterada com sucesso!\n");
+    }
+    else if (resultado == SQLITE_DONE)
     {
         printf("\n\t\t\t\t\t\tSenha alterada com sucesso!\n");
     }
@@ -127,8 +130,7 @@ void alterarSenha(sqlite3 *db, int idUsuario)
 
 double consultarSaldo(sqlite3 *db, int idUsuario)
 {
-    const char *sql =
-        "SELECT saldo FROM usuarios WHERE id = ?;";
+    const char *sql = "SELECT saldo FROM usuarios WHERE id = ?;";
 
     sqlite3_stmt *stmt = NULL;
 
@@ -201,20 +203,26 @@ void consultarDados(sqlite3 *db, int idUsuario)
     printf("\n==================================================== DADOS DA CONTA ==================================================\n");
 
 
-        printf("\n\t\t\t\t\t\tNome: %s\n", nome);
-        printf("\n\t\t\t\t\t\tCPF: %s\n", cpf);
+    printf("\n\t\t\t\t\t\tNome: %s\n", nome ? (const char *)nome : "");
+        printf("\n\t\t\t\t\t\tCPF: %s\n", cpf ? (const char *)cpf : "");
         printf("\n\t\t\t\t\t\tSaldo: R$ %.2f\n", saldo);
     }
-    else
+    else if (resultado == SQLITE_DONE)
     {
         printf("\n\t\t\t\t\t\tUsuario nao encontrado.\n");
         sqlite3_finalize(stmt);
         return;
     }
-
-    pausar();
+    else
+    {
+        printf("\n\t\t\t\t\t\tErro ao consultar dados: %s\n", sqlite3_errmsg(db));
+        sqlite3_finalize(stmt);
+        return;
+    }
     
     sqlite3_finalize(stmt);
+
+    pausar();
 
     int opcao;
 
@@ -327,6 +335,7 @@ void adicionarDinheiro(sqlite3 *db, int idUsuario)
     sqlite3_bind_double(stmt, 3, valor);
 
     resultado = sqlite3_step(stmt);
+    
     sqlite3_finalize(stmt);
 
     if (resultado != SQLITE_DONE)

@@ -17,7 +17,6 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
 {
 
     int opcao;
-    char entrada[20];
 
     do
     {
@@ -42,7 +41,7 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
         if (!lerOpcao("\n                                                Escolha uma opcao: ", &opcao))
         {
             printf("\t\t\t\t\t\t\nEntrada invalida.\n");
-            opcao = -1;
+            pausar();
             continue;
         }
 
@@ -75,7 +74,6 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
                 if (valorFinal < 0 || !isfinite(valorFinal))
                 {
                     printf("\n\t\t\t\t\t\tNao foi possivel calcular o pagamento.\n");
-
                     pausar();
                     break;
                 }
@@ -102,7 +100,6 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
             case 4:
             {
                 consultarDados(db, idUsuario);
-
                 break;
             }
 
@@ -119,6 +116,8 @@ void menuPrincipal(sqlite3 *db, int idUsuario)
 
             default:
                 printf("\t\t\t\t\t\tOpcao invalida!\n");
+                pausar();
+                break;
         }
 
     } while (opcao != 0);
@@ -142,10 +141,12 @@ int main(void)
     if (resultado != SQLITE_OK)
     {
 
-        printf("\n\t\t\t\t\t\tErro ao abrir banco de dados: %s\n",
-               sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao abrir banco de dados: %s\n",  db ? sqlite3_errmsg(db) : "Erro de memoria.");
 
-        sqlite3_close(db);
+        if (db != NULL)
+        {
+            sqlite3_close(db);
+        }
         return 1;
     }
 
@@ -161,8 +162,7 @@ int main(void)
         "saldo REAL NOT NULL DEFAULT 0.00"
         ");";
 
-    resultado = sqlite3_exec(
-        db, sqlTabela, NULL, NULL, &erro);
+    resultado = sqlite3_exec(db, sqlTabela, NULL, NULL, &erro);
 
     if (resultado != SQLITE_OK)
     {
@@ -226,6 +226,7 @@ int main(void)
         {
             printf("\n\t\t\t\t\t\tEntrada invalida.\n");
             opcao = -1;
+            pausar();
             continue;
         }
 
@@ -270,9 +271,25 @@ int main(void)
 // FUNCAO CRIAR TABELAS SQLite
 // ==========================================
 
-void criarTabelas(sqlite3 *db)
+int criarTabelas(sqlite3 *db)
 {
     char *mensagemErro = NULL;
+
+    // Habilita as chaves estrangeiras
+    if (sqlite3_exec(
+        db,
+        "PRAGMA foreign_keys = ON;",
+        NULL,
+        NULL,
+        &mensagemErro
+    ) != SQLITE_OK)
+    {
+        printf("Erro ao habilitar chaves estrangeiras: %s\n",
+               mensagemErro);
+
+        sqlite3_free(mensagemErro);
+        return 0;
+    }
 
     const char *sqlUsuarios =
         "CREATE TABLE IF NOT EXISTS usuarios ("
@@ -293,17 +310,27 @@ void criarTabelas(sqlite3 *db)
         "FOREIGN KEY (usuario_id) REFERENCES usuarios(id)"
         ");";
 
+    // Cria a tabela de usuários
+
     if (sqlite3_exec(db, sqlUsuarios, NULL, NULL, &mensagemErro) != SQLITE_OK)
     {
         printf("Erro ao criar tabela usuarios: %s\n", mensagemErro);
         sqlite3_free(mensagemErro);
-        return;
+        return 0;
     }
+
+    // Cria a tabela de transações
 
     if (sqlite3_exec(db, sqlTransacoes, NULL, NULL, &mensagemErro) != SQLITE_OK)
     {
         printf("Erro ao criar tabela transacoes: %s\n", mensagemErro);
         sqlite3_free(mensagemErro);
-        return;
+        return 0;
     }
+
+    printf("\n\t\t\t\t\t\tTabela usuarios pronta!\n");
+    printf("\n\t\t\t\t\t\tTabela transacoes pronta!\n");
+
+    return 1;
+
 }

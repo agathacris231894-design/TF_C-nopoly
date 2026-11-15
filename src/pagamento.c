@@ -24,9 +24,15 @@ int realizarPagamento(char *descricao, int tamanho)
 
     printf("\n================================================== REALIZAR PAGAMENTO ================================================\n");
 
+    if (descricao == NULL || tamanho <= 0)
+    {
+        printf("\n\t\t\t\t\t\tDescricao do pagamento invalida.\n");
+        return 0;
+    }
+    
     lerTexto("\n                                                Qual conta deseja pagar? ", descricao, tamanho);
 
-    if (strlen(descricao) == 0)
+        if (strlen(descricao) == 0)
     {
         printf("\n\t\t\t\t\t\tA descricao nao pode ficar vazia.\n");
         descricao[0] = '\0';
@@ -68,7 +74,7 @@ double escolherFormaPagamento(double valor)
     if (sscanf(entrada, "%d", &opcao) != 1)
     {
         printf("\n\t\t\t\t\t\tOpcao invalida!\n");
-        return 0.0;
+        return -1.0;
     }
 
     switch (opcao)
@@ -87,7 +93,7 @@ double escolherFormaPagamento(double valor)
 
     default:
         printf("\n\t\t\t\t\t\tOpcao invalida!\n");
-        return -1;
+        return -1.0;
     }
 
     printf("\n$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$\n");
@@ -110,6 +116,12 @@ double escolherFormaPagamento(double valor)
 
 int descontarSaldo(sqlite3 *db, int idUsuario, double valorFinal, const char *descricao)
 {
+    if (db == NULL || idUsuario <= 0)
+    {
+        printf("\n\t\t\t\t\t\tDados do usuario invalidos!\n");
+        return 0;
+    }
+
     if (!isfinite(valorFinal) || valorFinal <= 0)
     {
         printf("\n\t\t\t\t\t\tValor de pagamento invalido!\n");
@@ -229,8 +241,7 @@ int descontarSaldo(sqlite3 *db, int idUsuario, double valorFinal, const char *de
 
     if (resultado != SQLITE_OK)
     {
-        printf("\n\t\t\t\t\t\tErro ao associar dados do registro: %s\n",
-               sqlite3_errmsg(db));
+        printf("\n\t\t\t\t\t\tErro ao associar dados do registro: %s\n", sqlite3_errmsg(db));
 
         sqlite3_finalize(stmt);
         sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
@@ -238,6 +249,7 @@ int descontarSaldo(sqlite3 *db, int idUsuario, double valorFinal, const char *de
     }
 
     resultado = sqlite3_step(stmt);
+    
     sqlite3_finalize(stmt);
 
     if (resultado != SQLITE_DONE)

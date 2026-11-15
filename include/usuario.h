@@ -15,7 +15,9 @@ typedef struct
 
 // Protótipos das funções
 void cadastrarUsuario(sqlite3 *db);
+
 int fazerLogin(sqlite3 *db, int *idUsuario);
+
 void deletarUsuario(sqlite3 *db);
 
 #endif
