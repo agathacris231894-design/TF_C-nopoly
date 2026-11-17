@@ -28,13 +28,15 @@ void consultarExtrato(sqlite3 *db, int idUsuario)
 
     sqlite3_stmt *stmt = NULL;
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK)
+    int resultado = sqlite3_prepare_v2(db, sql, -1, &stmt, NULL);
+
+    if (resultado != SQLITE_OK)
     {
         printf("\n\t\t\t\t\t\tErro ao consultar extrato: %s\n", sqlite3_errmsg(db));
         return;
     }
 
-    int resultado = sqlite3_bind_int(stmt, 1, idUsuario);
+    resultado = sqlite3_bind_int(stmt, 1, idUsuario);
 
     if (resultado != SQLITE_OK)
     {
@@ -248,6 +250,10 @@ void transferirValores(sqlite3 *db, int idUsuario)
 
     const unsigned char *nomeBancoDestino = sqlite3_column_text(stmt, 1);
 
+    if (nomeBancoDestino == NULL){
+        goto erroTransferencia;
+    }
+
     snprintf(nomeDestino, sizeof(nomeDestino), "%s", (const char *)sqlite3_column_text(stmt, 1));
 
     sqlite3_finalize(stmt);
@@ -274,7 +280,7 @@ void transferirValores(sqlite3 *db, int idUsuario)
 
     resultado = sqlite3_bind_int(stmt, 1, idUsuario);
 
-    if (resultado != SQLITE_ROW) 
+    if (resultado != SQLITE_OK)
     {
         goto erroTransferencia;
     }
@@ -285,8 +291,13 @@ void transferirValores(sqlite3 *db, int idUsuario)
     {
         goto erroTransferencia;
     }
-
+    
     const unsigned char *nomeBancoOrigem = sqlite3_column_text(stmt, 0);
+
+    if (nomeBancoOrigem == NULL) 
+    {
+        goto erroTransferencia;
+    }
 
     snprintf(nomeOrigem, sizeof(nomeOrigem), "%s", (const char *)sqlite3_column_text(stmt, 0));
 
